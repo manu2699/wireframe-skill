@@ -1,0 +1,272 @@
+/* wireframe.css — fixed stylesheet. DO NOT regenerate or add inline styles.
+   Low-fidelity boxes, sleek monochrome chrome. Boxes, not components.
+   The WIREFRAME (.wf-box and layout primitives) stays raw and grey on purpose —
+   only the CHROME (header, tabs, panels, popover) is refined. Do not "design" the boxes. */
+
+:root {
+  /* wireframe (the artifact under review — kept deliberately plain) */
+  --wf-ink: #3f3f46;
+  --wf-line: #a1a1aa;
+  --wf-fill: #f4f4f5;
+  --wf-muted: #8a8a93;
+  --wf-tag-be: #1d4ed8;
+  --wf-tag-ds: #047857;
+  --wf-tag-guess: #d97706;
+  --wf-radius: 4px;
+  --wf-font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* chrome (the operating layer — near-monochrome ink on off-white) */
+  --c-ink: #18181b;        /* primary text */
+  --c-ink-2: #52525b;      /* secondary text */
+  --c-ink-3: #8a8a93;      /* tertiary / hints */
+  --c-bg: #fafafa;         /* page background, faint off-white */
+  --c-surface: #ffffff;    /* raised surfaces (header, panel, tabs) */
+  --c-line: #e4e4e7;       /* hairlines */
+  --c-line-2: #d4d4d8;     /* slightly stronger hairline */
+  --c-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --c-radius: 8px;
+  --c-radius-sm: 6px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--c-sans);
+  color: var(--c-ink);
+  background: var(--c-bg);
+  margin: 0;
+  padding: 32px;
+  line-height: 1.5;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Header / legend (chrome) ---- */
+.wf-legend {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--c-radius);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.wf-legend h1 {
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  margin: 0 0 10px; color: var(--c-ink);
+}
+.wf-legend p {
+  margin: 3px 0; font-size: 12.5px; color: var(--c-ink-2);
+}
+.wf-legend p strong, .wf-legend .wf-meta-label {
+  color: var(--c-ink-3); font-weight: 500;
+}
+.wf-legend .wf-key {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--c-line);
+  font-size: 11.5px; color: var(--c-ink-2);
+}
+.wf-legend .wf-key span { display: inline-flex; align-items: center; }
+.wf-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+.wf-dot.be { background: var(--wf-tag-be); }
+.wf-dot.ds { background: var(--wf-tag-ds); }
+.wf-dot.guess { background: var(--wf-tag-guess); }
+
+/* ---- Tabs (chrome) ---- */
+/* screen tabs: clean underline treatment */
+.wf-tabs {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--c-line); margin-bottom: 0;
+}
+.wf-tab {
+  font-family: var(--c-sans); font-size: 13px; cursor: pointer;
+  padding: 9px 14px; border: none; background: none;
+  color: var(--c-ink-3); position: relative;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .12s ease;
+}
+.wf-tab:hover { color: var(--c-ink-2); }
+.wf-tab[aria-selected="true"] {
+  color: var(--c-ink); font-weight: 600;
+  border-bottom-color: var(--c-ink);
+}
+.wf-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line); border-top: none;
+  border-radius: 0 0 var(--c-radius) var(--c-radius);
+  padding: 24px;
+}
+.wf-panel[hidden] { display: none; }
+
+/* state tabs: quiet pills inside a panel */
+.wf-states {
+  border-bottom: none; gap: 6px; margin: 0 0 20px;
+}
+.wf-states .wf-tab {
+  font-size: 11.5px; padding: 4px 11px; border-radius: 999px;
+  border: 1px solid var(--c-line-2); margin-bottom: 0;
+  color: var(--c-ink-3); background: var(--c-surface);
+}
+.wf-states .wf-tab:hover { border-color: var(--c-ink-3); }
+.wf-states .wf-tab[aria-selected="true"] {
+  background: var(--c-ink); color: #fff; border-color: var(--c-ink); font-weight: 500;
+}
+
+/* ---- Layout primitives ---- */
+.wf-row { display: flex; gap: 12px; align-items: stretch; }
+.wf-col { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.wf-grid { display: grid; gap: 12px; grid-template-columns: repeat(var(--cols, 3), 1fr); }
+.wf-fill1 { flex: 1; }
+.wf-fill2 { flex: 2; }
+.wf-fill3 { flex: 3; }
+
+/* ---- The box (raw wireframe — intentionally plain; do not "design" these) ---- */
+.wf-box {
+  position: relative;
+  font-family: var(--wf-font);
+  border: 1px dashed var(--wf-line);
+  border-radius: var(--wf-radius);
+  padding: 14px 12px;
+  min-height: 40px;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; color: var(--wf-ink);
+  font-size: 12.5px;
+}
+.wf-box.solid { border-style: solid; }
+.wf-box.shaded { background: var(--wf-fill); }
+.wf-sidebar { flex: 0 0 160px; }
+.wf-nav { flex: 0 0 100%; min-height: 48px; }
+.wf-tall { min-height: 120px; }
+.wf-taller { min-height: 200px; }
+
+/* annotated boxes get a marker so users know to hover */
+.wf-box[data-backend], .wf-box[data-ds] { cursor: help; }
+.wf-box[data-backend]::before, .wf-box[data-ds]::before {
+  content: "·"; position: absolute; top: 3px; right: 6px;
+  color: var(--wf-line); font-weight: 700;
+}
+
+/* ---- Hover annotations ---- */
+.wf-box[data-backend]:hover::after,
+.wf-box[data-ds]:hover::after {
+  content: attr(data-backend) " | " attr(data-ds);
+  position: absolute; bottom: calc(100% + 4px); left: 50%;
+  transform: translateX(-50%);
+  white-space: pre; max-width: 280px;
+  background: #222; color: #fff; font-size: 10px;
+  padding: 6px 8px; border-radius: var(--wf-radius);
+  z-index: 10; pointer-events: none;
+  text-align: left;
+}
+/* when only one mapping exists, fall back cleanly */
+.wf-box[data-backend]:not([data-ds]):hover::after { content: "BE: " attr(data-backend); }
+.wf-box[data-ds]:not([data-backend]):hover::after { content: "DS: " attr(data-ds); }
+
+/* guessed design-system mappings (data-ds starts with "guess:") render amber */
+.wf-box[data-ds^="guess:"]::before { content: "?"; color: var(--wf-tag-guess); }
+.wf-box[data-ds^="guess:"]:hover::after {
+  background: #7a4a00; border: 1px solid var(--wf-tag-guess);
+}
+
+.wf-label { font-size: 12px; }
+.wf-placeholder { color: var(--wf-muted); font-style: italic; }
+
+/* ============================================================
+   COMMENT LAYER — review chrome, deliberately distinct from the
+   wireframe. Sleek to match the operating layer, but keeps a single
+   accent so it always reads as "not the wireframe". Hideable.
+   ============================================================ */
+:root {
+  --wfc-accent: #c026d3;   /* magenta — never used by wireframe boxes, so comments read as chrome */
+  --wfc-accent-soft: #fae8ff;
+  --wfc-ink: #18181b;
+}
+
+/* commented-box marker: a real child pin (not a pseudo-element — those are taken by
+   the annotation ·/? markers and the hover tooltip). Distinct accent, top-left corner. */
+.wf-box[data-wf-commented] { box-shadow: inset 0 0 0 1.5px var(--wfc-accent); }
+.wfc-pin {
+  position: absolute; top: 2px; left: 5px; font-size: 11px; line-height: 1;
+  z-index: 3; pointer-events: none; user-select: none;
+}
+
+/* toggle button — fixed, bottom-right, above everything */
+#wfc-layer { position: relative; z-index: 1000; font-family: var(--c-sans); }
+#wfc-toggle {
+  position: fixed; bottom: 20px; right: 20px; z-index: 1002;
+  font-family: var(--c-sans); font-size: 12.5px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--wfc-accent); color: #fff; border: none;
+  padding: 9px 15px; border-radius: 999px; box-shadow: 0 4px 14px rgba(192,38,211,.28);
+  transition: transform .1s ease, box-shadow .12s ease;
+}
+#wfc-toggle:hover { box-shadow: 0 6px 18px rgba(192,38,211,.34); transform: translateY(-1px); }
+
+/* panel — fixed, right side, scrollable */
+#wfc-panel {
+  position: fixed; top: 20px; right: 20px; bottom: 72px; z-index: 1001;
+  width: 320px; max-width: 90vw; overflow: auto;
+  background: var(--c-surface); border: 1px solid var(--c-line);
+  border-radius: var(--c-radius);
+  box-shadow: 0 12px 32px rgba(24,24,27,.14);
+  font-family: var(--c-sans); font-size: 12.5px; color: var(--wfc-ink);
+}
+#wfc-panel header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--c-line);
+  position: sticky; top: 0; background: var(--c-surface);
+}
+#wfc-panel header strong { font-size: 13.5px; font-weight: 600; }
+#wfc-panel-close {
+  border: none; background: none; font-size: 20px; cursor: pointer;
+  color: var(--c-ink-3); line-height: 1; padding: 0 2px;
+}
+#wfc-panel-close:hover { color: var(--c-ink); }
+.wfc-hint { margin: 12px 16px; color: var(--c-ink-3); font-size: 11.5px; line-height: 1.45; }
+#wfc-list { list-style: none; margin: 0; padding: 0 16px; }
+#wfc-list li { padding: 12px 0; border-bottom: 1px solid var(--c-line); }
+#wfc-list li:last-child { border-bottom: none; }
+.wfc-item { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.wfc-done { margin-top: 2px; accent-color: var(--wfc-accent); }
+.wfc-meta { line-height: 1.4; }
+.wfc-meta em { color: var(--c-ink-3); font-style: normal; }
+.wfc-done:checked ~ .wfc-meta { text-decoration: line-through; opacity: .5; }
+.wfc-text { margin: 5px 0 0 24px; color: var(--c-ink-2); line-height: 1.45; }
+.wfc-actions {
+  padding: 14px 16px; position: sticky; bottom: 0; background: var(--c-surface);
+  border-top: 1px solid var(--c-line); display: flex; gap: 12px; align-items: center;
+}
+#wfc-copy {
+  font-family: var(--c-sans); font-size: 12.5px; font-weight: 500; cursor: pointer;
+  background: var(--wfc-accent); color: #fff; border: none;
+  padding: 8px 14px; border-radius: var(--c-radius-sm);
+}
+#wfc-copy:hover { filter: brightness(.95); }
+#wfc-copied { color: var(--wf-tag-ds); font-size: 11.5px; font-weight: 500; }
+
+/* popover pinned to a clicked box */
+.wfc-pop {
+  position: absolute; z-index: 1003; width: 270px;
+  background: var(--c-surface); border: 1px solid var(--c-line-2);
+  border-radius: var(--c-radius-sm);
+  box-shadow: 0 8px 24px rgba(24,24,27,.16); padding: 12px;
+  font-family: var(--c-sans); font-size: 12.5px;
+}
+.wfc-pop-meta {
+  font-size: 11px; color: var(--c-ink-3); margin-bottom: 7px;
+  padding-bottom: 7px; border-bottom: 1px solid var(--c-line);
+}
+.wfc-pop-input {
+  width: 100%; box-sizing: border-box; font-family: var(--c-sans); font-size: 12.5px;
+  resize: vertical; border: 1px solid var(--c-line-2); border-radius: 5px;
+  padding: 7px 8px; color: var(--c-ink); line-height: 1.4;
+}
+.wfc-pop-input:focus { outline: none; border-color: var(--wfc-accent); }
+.wfc-pop-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; align-items: center; }
+.wfc-pop-actions button {
+  font-family: var(--c-sans); font-size: 11.5px; cursor: pointer;
+  border: 1px solid var(--c-line-2); background: var(--c-surface);
+  border-radius: 5px; padding: 5px 11px; color: var(--c-ink-2);
+}
+.wfc-pop-actions button:hover { border-color: var(--c-ink-3); }
+.wfc-pop-save { background: var(--wfc-accent) !important; color: #fff !important; border-color: var(--wfc-accent) !important; }
+.wfc-pop-del { color: #b91c1c !important; margin-right: auto; border-color: transparent !important; }
