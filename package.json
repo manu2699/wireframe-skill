@@ -4,7 +4,7 @@
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
-    "wireframe-preview": "./bin/cli.js"
+    "wireframe-preview": "bin/cli.js"
   },
   "files": [
     "bin/",
