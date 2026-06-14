@@ -10,6 +10,13 @@ const SKILL_SRC = path.join(__dirname, "..", "SKILL.md");
 const SKILL_CONTENT = fs.readFileSync(SKILL_SRC, "utf8");
 const PKG_NAME = "wireframe-preview";
 
+const genericAgentSkill = {
+  label: "Generic Agent Skill",
+  type: "copy",
+  dest: () => path.join(process.cwd(), ".agents", "skills", `${PKG_NAME}.md`),
+}
+
+// Each platform entry: where to write, and how (copy vs append-section)
 const PLATFORMS = {
   claude: {
     label: "Claude Code (global)",
@@ -17,10 +24,9 @@ const PLATFORMS = {
     dest: () => path.join(os.homedir(), ".claude", "skills", `${PKG_NAME}.md`),
   },
   "claude-project": {
-    label: "Claude Code (project CLAUDE.md)",
-    type: "append",
-    dest: () => path.join(process.cwd(), "CLAUDE.md"),
-    section: `\n\n## wireframe-preview skill\nThis project uses the wireframe-preview skill. Run \`/wireframe-preview\` to generate low-fidelity HTML wireframes from a feature spec or description.\nSee [SKILL.md](./SKILL.md) for full instructions.\n`,
+    label: "Claude Code (project)",
+    type: "copy",
+    dest: () => path.join(process.cwd(), ".claude", "skills", `${PKG_NAME}.md`),
   },
   cursor: {
     label: "Cursor",
@@ -37,23 +43,21 @@ const PLATFORMS = {
     type: "copy",
     dest: () => path.join(process.cwd(), ".windsurf", "rules", `${PKG_NAME}.md`),
   },
-  codex: {
-    label: "Codex (OpenAI)",
-    type: "append",
-    dest: () => path.join(process.cwd(), "AGENTS.md"),
-    section: `\n\n## wireframe-preview\n${SKILL_CONTENT}\n`,
+  agents: {
+    ...genericAgentSkill,
+    label: "Agents folder (.agents/) - Generic",
   },
-  gemini: {
-    label: "Gemini CLI",
-    type: "append",
-    dest: () => path.join(process.cwd(), "GEMINI.md"),
-    section: `\n\n## wireframe-preview\n${SKILL_CONTENT}\n`,
+  codex: {
+    ...genericAgentSkill,
+    label: "Codex (OpenAI)",
+  },
+  antigravity: {
+    ...genericAgentSkill,
+    label: "Antigravity",
   },
   copilot: {
+    ...genericAgentSkill,
     label: "GitHub Copilot",
-    type: "append",
-    dest: () => path.join(process.cwd(), ".github", "copilot-instructions.md"),
-    section: `\n\n## wireframe-preview\n${SKILL_CONTENT}\n`,
   },
   "amp-code": {
     label: "Amp Code",
@@ -125,33 +129,28 @@ function autoDetect() {
   const home = os.homedir();
 
   if (fs.existsSync(path.join(home, ".claude"))) hits.push("claude");
+  if (fs.existsSync(path.join(cwd, ".agents"))) hits.push("agents");
   if (fs.existsSync(path.join(cwd, ".cursor"))) hits.push("cursor");
   if (fs.existsSync(path.join(cwd, ".kilocode"))) hits.push("kilocode");
   if (fs.existsSync(path.join(cwd, ".windsurf"))) hits.push("windsurf");
-  if (fs.existsSync(path.join(cwd, ".amp"))) hits.push("amp-code");
-  if (fs.existsSync(path.join(cwd, ".github"))) hits.push("copilot");
-  if (fs.existsSync(path.join(cwd, "AGENTS.md"))) hits.push("codex");
-  if (fs.existsSync(path.join(cwd, "GEMINI.md"))) hits.push("gemini");
 
-  return hits.length > 0 ? hits : ["claude"];
+  return hits.length > 0 ? hits : ["agents"];
 }
 
 // ── CLI entry ──────────────────────────────────────────────────────────────
 
 const [, , cmd, ...args] = process.argv;
 const platformFlag = args.find((a) => !a.startsWith("--"));
-const isAll = args.includes("--all");
 
 if (!cmd || cmd === "help") {
   console.log(`
 wireframe-preview — install a low-fidelity wireframe skill into your AI agent
 
 Usage:
-  npx wireframe-preview install                   auto-detect agents in this project
-  npx wireframe-preview install <platform>        install for one platform
-  npx wireframe-preview install --all             install for all supported platforms
-  npx wireframe-preview uninstall [platform]      remove (omit platform to auto-detect)
-  npx wireframe-preview list                      show supported platforms
+  npx feature-spec install                   auto-detect agents in this project
+  npx feature-spec install <platform>        install for one platform
+  npx feature-spec uninstall [platform]      remove (omit platform to auto-detect)
+  npx feature-spec list                      show supported platforms
 
 Platforms: ${Object.keys(PLATFORMS).join(", ")}
 `);
@@ -169,9 +168,7 @@ if (cmd === "list") {
 
 if (cmd === "install") {
   let targets;
-  if (isAll) {
-    targets = Object.keys(PLATFORMS);
-  } else if (platformFlag) {
+  if (platformFlag) {
     if (!PLATFORMS[platformFlag]) {
       console.error(`Unknown platform: ${platformFlag}`);
       console.error(`Run: npx wireframe-preview list`);
@@ -189,7 +186,9 @@ if (cmd === "install") {
 }
 
 if (cmd === "uninstall") {
-  const targets = platformFlag ? [platformFlag] : autoDetect();
+  const targets = platformFlag
+    ? [platformFlag]
+    : autoDetect();
 
   if (!platformFlag) console.log(`Auto-detected: ${targets.join(", ")}\n`);
 

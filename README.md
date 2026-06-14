@@ -21,15 +21,16 @@ bunx wireframe-preview install
 This auto-detects which agents are present in your project and installs accordingly. To target a specific agent (swap `npx` for `pnpm dlx` or `bunx` as preferred):
 
 ```bash
-npx wireframe-preview install claude       # Claude Code (global ~/.claude/skills/)
-npx wireframe-preview install cursor       # Cursor (.cursor/rules/)
-npx wireframe-preview install kilocode     # Kilocode (.kilocode/rules/)
-npx wireframe-preview install windsurf     # Windsurf (.windsurf/rules/)
-npx wireframe-preview install copilot      # GitHub Copilot (.github/copilot-instructions.md)
-npx wireframe-preview install codex        # Codex / OpenAI (AGENTS.md)
-npx wireframe-preview install gemini       # Gemini CLI (GEMINI.md)
-npx wireframe-preview install amp-code     # Amp Code (.amp/rules/)
-npx wireframe-preview install --all        # every supported platform
+npx feature-spec install claude          # Claude Code (global ~/.claude/skills/)
+npx feature-spec install claude-project  # Claude Code (project .claude/skills/)
+npx feature-spec install cursor          # Cursor (.cursor/rules/)
+npx feature-spec install kilocode        # Kilocode (.kilocode/rules/)
+npx feature-spec install windsurf        # Windsurf (.windsurf/rules/)
+npx feature-spec install agents          # Generic .agents/skills folder
+npx feature-spec install codex           # Codex / OpenAI (.agents/skills)
+npx feature-spec install antigravity     # Antigravity (.agents/skills)
+npx feature-spec install copilot         # GitHub Copilot (.agents/skills)
+npx feature-spec install amp-code        # Amp Code (.amp/rules/)
 ```
 
 ### Uninstall
