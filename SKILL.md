@@ -1,6 +1,6 @@
 ---
 name: wireframe-preview
-description: Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change. Use whenever someone describes a feature, backend change, new endpoint, new field, schema change, or user flow and wants to see how the front-end is affected — phrases like "what would the UI look like", "wireframe this", "preview the screens for", "mock up the front-end", or "show me the UX impact". Works for developers, PMs, designers, and QA, with or without a backend defined. Reads an optional shared feature-spec.md (intent, persona, screens, API) and design.md if present, otherwise asks a few quick questions. Produces rough grey boxes showing screen sections, NOT polished or production HTML. Deliberately avoids rich styling, real copy, colors, and component detail to stay cheap and fast. Prefer this over building real UI any time the goal is a quick layout sanity-check rather than a buildable interface.
+description: Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change. Use whenever someone describes a feature, backend change, new endpoint, new field, schema change, or user flow and wants to see how the front-end is affected — phrases like "what would the UI look like", "wireframe this", "preview the screens for", "mock up the front-end", or "show me the UX impact". Works for developers, PMs, designers, and QA, with or without a backend defined. Reads an optional shared feature-spec.md (intent, persona, screens, API) and a DESIGN.md if present, otherwise asks a few quick questions. Produces rough grey boxes showing screen sections, NOT polished or production HTML. Deliberately avoids rich styling, real copy, colors, and component detail to stay cheap and fast. Prefer this over building real UI any time the goal is a quick layout sanity-check rather than a buildable interface.
 ---
 
 # Wireframe Preview
@@ -17,10 +17,10 @@ Two situations to serve, equally:
 
 Do not produce production-quality UI. Do not waste tokens on aesthetics. Specifically, you must **never**:
 
-- Write inline `style="..."` attributes (except the two layout helpers shown below: `--cols` on a grid and `margin-top` for spacing). All visual styling lives in the shared `assets/wireframe.css` and is never regenerated or modified.
+- Write inline `style="..."` attributes (except the layout helpers shown below: `--cols` on a grid, `--tcols` on a table, and `margin-top` for spacing). All visual styling lives in the shared `assets/wireframe.css` and is never regenerated or modified.
 - Add colors, gradients, shadows, icons, images, fonts, or any decorative CSS.
 - Write real or realistic copy. Use short generic labels ("Refund reason field", "User table", "Submit"). Placeholder rows say things like "row" or "—".
-- Build real components (no real dropdowns, no working forms, no charts). A chart is a box labeled "Chart". A table is a box labeled "Table (N cols)".
+- Build real components (no real dropdowns, no working forms, no charts). A chart is a box labeled "Chart". A table uses the `.wf-table` primitive — a header row of real **column names** plus a couple of placeholder body rows (`—`); never fill it with realistic data or pipe-separated text.
 - Pull in any framework, CDN, font, or external resource.
 
 If you catch yourself reaching for fidelity, stop. Boxes, not components.
@@ -33,7 +33,7 @@ The only things you truly need to start are **the feature intent in one sentence
 
 **Read these files if they exist** (look in `docs/specs/<feature>.md`, the project root, or a `docs/` dir):
 - `feature-spec.md` (or `docs/specs/<feature>.md`) — the shared feature spec: intent, persona, screens & states, and optional API surface / auth / field changes / frontend-impact sections. This is the single input contract. It may be authored by hand (a PM filling in intent + persona) or produced by the `feature-spec` skill (which reads a repo and fills the technical sections too). Whatever is present is source of truth; sections may be blank, which just means "propose this for me." The Auth / permissions section, when present, tells you which screens need a permission-denied state. For backward compatibility, also read a legacy `feature.md` or `api.md` if present and no `feature-spec.md` exists.
-- `design.md` — component vocabulary (see step 4).
+- `DESIGN.md` — component vocabulary (see step 4).
 
 **Then fill gaps by asking — adaptively, in the user's own language.** Detect the persona from how they phrase the request and match it:
 - If they talk in endpoints, payloads, and schemas (a developer), you may ask in those terms.
@@ -72,7 +72,7 @@ Keeping the two files separate is deliberate: layout edits during iteration only
 
 Then fill in `wireframe.html`:
 
-- Fill the **legend** block: feature name, one-line backend change, the approved screen list, and the design-system source (e.g. "from design.md", "detected: MUI", or "generic primitives — no design.md found").
+- Fill the **legend** block: feature name, one-line backend change, the approved screen list, and the design-system source (e.g. "from DESIGN.md", "detected: MUI", or "generic primitives — no DESIGN.md found").
 - One **screen tab** per approved screen.
 - Within a screen, add **state tabs** only if that screen has more than one relevant state. Single-state screens get no state tabs.
 - Lay out each screen with the layout primitives below. Keep it rough — match the real arrangement (sidebar beside content, cards in a grid) but don't fuss over proportions.
@@ -94,13 +94,20 @@ This is the high-value part. Every box that is **new or modified by the backend 
 
 Boxes that are pure layout context (nav, sidebar, unchanged sections) get **no** annotations — keep the signal on what changed. Annotated boxes show a small `·` marker so the user knows to hover.
 
-#### Sourcing the design-system vocabulary (`design.md`)
+#### Sourcing the design-system vocabulary (`DESIGN.md`)
 
-The `data-ds` mapping is only useful if it uses the names the user's team actually uses. Do not guess from your own knowledge of component libraries. Source the vocabulary in this order:
+The `data-ds` mapping is only useful if it uses the names the user's team actually uses. Do not guess from your own knowledge of component libraries. The vocabulary lives in a **`DESIGN.md`** — the open [Google Labs DESIGN.md format](https://github.com/google-labs-code/design.md): an optional YAML token frontmatter plus markdown sections (Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts). For this skill, the **Components** section is the vocabulary you read; the others are context. Source it in this order:
 
-1. **Read `design.md`.** Look for a `design.md` (or `DESIGN.md`) in the project root or a `docs/` directory. Parse the component vocabulary from it — component names, variants, sizes, states. Constrain every `data-ds` value to names that appear in that file, spelled exactly as written there.
-2. **Bootstrap if missing.** If there's no `design.md`, do not fabricate one or silently fall back. Offer the user a choice: "I don't see a `design.md`. I can (a) scan the repo to detect your component library, (b) take a one-line description of your design system from you, or (c) proceed with generic primitives. Whichever you pick, I'll note the vocabulary so I don't ask again." If they give you a vocabulary, write a minimal `design.md` capturing it before generating.
-3. **Optional repo detect.** If asked to detect, scan for signals: `package.json` dependencies (e.g. MUI, Chakra, Ant Design, shadcn/ui, Mantine), a `components/` directory, or Storybook config. Use detected component names as the vocabulary. Confirm what you found before relying on it.
+1. **Read an existing `DESIGN.md`.** Look for `DESIGN.md` (canonical, uppercase) at the **project root** — also accept a legacy lowercase `design.md` or one under `docs/`. Parse the component names, variants, sizes, and states from the Components section. Constrain every `data-ds` value to names that appear there, spelled exactly as written.
+2. **When no `DESIGN.md` exists, auto-detect and create one.** If no `DESIGN.md` is found at the project root (or `docs/`), follow this sequence:
+
+   **Step A — spawn a detection agent.** Use the `Agent` tool (subagent_type: `Explore`) to scan the repo for a real component vocabulary. The agent prompt should say: "Scan this repo for a component library. Check: package.json dependencies (MUI, Chakra, Ant Design, shadcn/ui, Radix, etc.), a `components/` or `src/components/` directory listing component names, a Storybook `stories/` dir, or any internal design package. Return: (1) the detected library name and version if any, (2) up to 30 component names with their key variants/sizes/states in the format `ComponentName — variants: x, y; sizes: sm, md, lg`. Return ONLY this list, no explanation." If the agent returns a real component list, proceed to Step B. If it finds nothing concrete, skip to Step C.
+
+   **Step B — write `DESIGN.md` from the template.** Copy `assets/DESIGN.md` verbatim to `DESIGN.md` at the project root. Then fill in the Components section using the agent's findings — real component names and variants, spelled exactly as the library names them. Set the `name:` frontmatter field to the detected library. Confirm to the user: "I created `DESIGN.md` using [library name] components detected from this repo — you can edit it at any time."
+
+   **Step C — generic primitives fallback.** If detection found nothing concrete (no library, no `components/` dir, no Storybook), **do not write any file**. Map boxes with generic HTML primitives and mark every `data-ds` as a guess (amber), per below. Tell the user: "No component library detected — using generic primitives with amber guesses. To get real component names in future runs, add a `DESIGN.md` at the project root (see `assets/DESIGN.md` for the template)."
+
+   The detection + write only happens once per project: if `DESIGN.md` already exists (even a stub), read it as-is and skip this step entirely. The user can always edit or replace the generated file.
 
 The user owns the vocabulary; you own the assignment. The config file guarantees the names are real and correctly spelled — deciding *which* component a box maps to is still your judgment.
 
@@ -114,17 +121,17 @@ If a box needs a design-system mapping but nothing in the vocabulary fits (or no
      data-ds="guess: Badge / status">Status pill</div>
 ```
 
-The shared CSS renders guessed mappings differently on hover (amber, with a "guess" prefix) so the user can see at a glance which mappings are grounded in their `design.md` and which are Claude filling a gap. Never pass off a guess as a confirmed mapping.
+The shared CSS renders guessed mappings differently on hover (amber, with a "guess" prefix) so the user can see at a glance which mappings are grounded in their `DESIGN.md` and which are Claude filling a gap. Never pass off a guess as a confirmed mapping.
 
 ### 5. Open the preview, then iterate on the HTML
 
-After writing the files, give the user the path to `wireframe.html` and offer to open it in their browser. Mention they can **click any box to leave a comment, then hit "Copy feedback block" and paste it back** for precise, element-anchored changes. If the harness can run shell commands, open it directly with the platform-appropriate command:
+After writing the files, give the user the path to `wireframe.html` and offer to open it in their browser. Mention they can **click any box to leave a comment, then hit "Copy feedback block" and paste it back** for precise, element-anchored changes — and that when it looks right they can hit **"✓ Approve"** to hand back a sign-off block (see step 6). If the harness can run shell commands, open it directly with the platform-appropriate command:
 
 - macOS: `open .wireframes/<feature-slug>/wireframe.html`
 - Linux: `xdg-open .wireframes/<feature-slug>/wireframe.html`
 - Windows: `start .wireframes/<feature-slug>/wireframe.html`
 
-Then treat the wireframe as a living file. Follow-up requests ("make the sidebar narrower", "drop the empty state", "that field should be a Select not a TextArea", "add a loading state") are **edits to `wireframe.html` only** — change the boxes, classes, tabs, or annotations in place and tell the user to refresh the browser. Never touch `wireframe.css`: width, spacing, and emphasis are all expressible through the existing layout primitives (`.wf-fill1/2/3`, `.wf-sidebar`, `.wf-tall`, `.wf-shaded`, the `--cols` grid value, and the one permitted `margin-top` inline style). If a request seems to need new styling, it almost certainly maps to an existing primitive — reach for those, not new CSS.
+Then treat the wireframe as a living file. Follow-up requests ("make the sidebar narrower", "drop the empty state", "that field should be a Select not a TextArea", "add a loading state") are **edits to `wireframe.html` only** — change the boxes, classes, tabs, or annotations in place and tell the user to refresh the browser. Never touch `wireframe.css`: width, spacing, and emphasis are all expressible through the existing layout primitives (`.wf-fill1/2/3`, `.wf-sidebar`, `.wf-tall`, `.wf-shaded`, the `--cols` grid value, the `--tcols` table value, and the one permitted `margin-top` inline style). If a request seems to need new styling, it almost certainly maps to an existing primitive — reach for those, not new CSS.
 
 This write → open → tweak loop is the core of how the skill is used on a coding-agent harness. Keep edits surgical and the file readable so the user can also hand-edit boxes themselves.
 
@@ -140,6 +147,19 @@ The wireframe has a built-in comment layer: the user clicks boxes in the browser
 
 This block is the precise feedback channel; without it the user can only describe changes vaguely. Trust its structure and stay strictly within its scope.
 
+### 6. Approval & handoff (the terminal signal)
+
+The iterate loop ends in one of two ways: more changes (a feedback block) or **sign-off**. The comment panel's **"✓ Approve"** button is the sign-off channel — it copies an approval block that says the wireframe now matches the user's intent. Treat its arrival (or a plain "looks good / approved") as the transition out of wireframing.
+
+An approval block is delimited `===== WIREFRAME APPROVED: <feature> =====` ... `===== END APPROVAL (K mapped boxes, N open comments) =====` and carries the agreed **screens** plus every annotated box's `id | label | screen | state | be | ds` mapping. When you receive one:
+
+- **Read it as understanding, not as a build spec.** The wireframe is the agent's low-fidelity grasp of *what the feature needs* — which screens exist and how each changed piece ties to a backend element and a design-system component. It is **not** code, real UI, or a visual design. Never reproduce the grey boxes as components, and never infer layout pixels, spacing, or styling from them.
+- **Check open comments first.** If the block reports `N open comments`, those are unresolved notes — surface them and resolve or explicitly confirm them with the user before going further. Don't build over open feedback.
+- **Lock the spec.** Persist the approved understanding to `docs/specs/<feature>.md`: set a `status: approved` marker, write the confirmed screens & states, and record the box→backend→component mapping. This makes the approved wireframe the single source of truth other tools/teammates consume — captured as intent, with a clear note that it is not an implementation.
+- **Produce a plan, then wait.** Turn the mapping into an implementation **plan** — each annotated box becomes "build component X (from `ds`) wired to backend Y (from `be`) on screen Z" — and present it. Do **not** start writing feature code off approval alone; pause for the user to greenlight building. Approval signs off the *idea*, not the implementation.
+
+So the full lifecycle is: confirm screens (step 2) → draw → iterate via feedback blocks (step 5) → **approve → lock spec → plan → wait** (step 6).
+
 ## Layout primitives (the only classes you use)
 
 Structure:
@@ -150,25 +170,37 @@ Structure:
 Boxes:
 - `.wf-box` — the base dashed box. Add `.solid` for emphasis, `.shaded` for a filled-looking region.
 - `.wf-nav` — full-width top bar. `.wf-sidebar` — fixed-width side column.
-- `.wf-tall` / `.wf-taller` — taller boxes for content regions, charts, tables.
+- `.wf-tall` / `.wf-taller` — taller boxes for content regions and charts.
 - `.wf-placeholder` — muted italic text for empty/error placeholder copy.
+
+Table:
+- `.wf-box.wf-table` with `style="--tcols:N"` — a table. It's a `.wf-box` variant, so it still gets the annotation marker, hover tooltip, and comment layer. Inside, one `.wf-tr` per row; within a row, `.wf-th` cells for the header and `.wf-td` cells for body rows. Give the header **real column names**; make body cells placeholders (`<div class="wf-td wf-placeholder">—</div>`). One dashed frame, hairline cell separators — never pipe-separated text in a plain box, and never realistic row data. Two or three placeholder rows is plenty.
+
+```html
+<div class="wf-box wf-table" style="--tcols:3" data-backend="GET /orders" data-ds="DataGrid / striped">
+  <div class="wf-tr"><div class="wf-th">Order</div><div class="wf-th">Status</div><div class="wf-th">Total</div></div>
+  <div class="wf-tr"><div class="wf-td wf-placeholder">—</div><div class="wf-td wf-placeholder">—</div><div class="wf-td wf-placeholder">—</div></div>
+</div>
+```
+
+Nesting & dashes: keep the dashed border the boundary of a *region*, not of every child. Don't stack a dashed box inside a dashed box inside a dashed box — the parallel dashed lines turn into visual noise. The CSS already de-nests for you: a `.wf-box` placed inside another `.wf-box` automatically drops to a quiet solid hairline so only the outer frame stays dashed. Lean on layout containers (`.wf-row`/`.wf-col`/`.wf-grid`, which have no border) to group boxes rather than wrapping them in extra dashed boxes.
 
 Spacing between stacked rows: `style="margin-top:12px"` is the one permitted inline style.
 
 ## Examples
 
-**Example A — developer, full input.** `feature-spec.md` (with API surface filled) and `design.md` both exist.
+**Example A — developer, full input.** `feature-spec.md` (with API surface filled) and `DESIGN.md` both exist.
 Input: "Wireframe the refund flow."
 - Step 1: read both files; nothing missing, so ask nothing.
 - Step 2 confirm: "Feature: admins issue refunds, customers see confirmation. Screens: Admin refund form (default, error), Customer confirmation, Admin order list (adds Refunded badge). Drawing these — adjust?"
-- Steps 3–5: write `.wireframes/refund-flow/wireframe.html` linking `wireframe.css`, three screen tabs, state tabs only on the admin form, refund field + submit annotated from the spec's API surface and `design.md`, unchanged nav/sidebar left plain. Open it. "Make the reason a Select" → edit that one box's `data-ds` and label, refresh.
+- Steps 3–5: write `.wireframes/refund-flow/wireframe.html` linking `wireframe.css`, three screen tabs, state tabs only on the admin form, refund field + submit annotated from the spec's API surface and `DESIGN.md`, unchanged nav/sidebar left plain. Open it. "Make the reason a Select" → edit that one box's `data-ds` and label, refresh.
 
-**Example B — PM, blank on screens, no files.** No `feature-spec.md`, no `design.md`.
+**Example B — PM, blank on screens, no files.** No `feature-spec.md`, no `DESIGN.md`.
 Input: "Show me what the screens look like for letting users invite teammates."
 - Step 1: no files to read. The PM has intent but no screen model, so ask only the essentials in plain language: "What does this let someone do, and who does it?" Don't ask them to list screens or states.
 - Step 2 propose + confirm: "A feature like this usually needs: 1) **Members page** — teammate list, Invite button, pending invites (default, empty); 2) **Invite modal** — enter emails, send (default, error); 3) **Invitee accept screen** — what the invited person lands on (pending, accepted, expired). I'll draw these — drop, add, rename, or merge any first?" The PM reacts to the concrete list rather than producing one.
 - After they approve (say they drop the expired state), offer: "Want me to save this to docs/specs/invite-teammates.md so it's ready next time and other tools can use it?"
-- Steps 3–5: wireframe the agreed set. `data-backend` annotations describe intended behavior ("sends invite", "marks invite accepted") since no endpoints are defined; `data-ds` mappings are guesses (amber) because there's no `design.md`.
+- Steps 3–5: wireframe the agreed set. `data-backend` annotations describe intended behavior ("sends invite", "marks invite accepted") since no endpoints are defined; `data-ds` mappings are guesses (amber) because there's no `DESIGN.md`.
 
 ## Keep it cheap
 The token budget is the constraint. A screen is a handful of boxes, not a layout study. When in doubt, fewer boxes, shorter labels, no extra states. The user can always ask for more detail on one screen — start lean.

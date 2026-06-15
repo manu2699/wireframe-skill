@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <!-- ============================================================================
      THIS IS A LOW-FIDELITY WIREFRAME, NOT AN IMPLEMENTATION.
      It is a throwaway layout preview made of placeholder boxes. Do NOT treat it
@@ -7,263 +7,693 @@
      and design-system components (data-ds) for review only.
      ============================================================================ -->
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wireframe Preview — {{FEATURE_NAME}}</title>
-<!-- On a coding-agent harness, write wireframe.css as a sibling file and keep this link.
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Wireframe Preview — {{FEATURE_NAME}}</title>
+        <!-- On a coding-agent harness, write wireframe.css as a sibling file and keep this link.
      On a chat surface with no browsable filesystem, replace this line with an inline
      <style> block containing the full contents of wireframe.css instead. -->
-<link rel="stylesheet" href="wireframe.css">
-</head>
-<body>
+        <link rel="stylesheet" href="wireframe.css" />
+    </head>
+    <body>
+        <div class="wf-legend">
+            <h1>{{FEATURE_NAME}}</h1>
+            <p>Backend change: {{ONE_LINE_DESCRIPTION_OF_THE_CHANGE}}</p>
+            <p>Affected screens: {{SCREEN_LIST}}</p>
+            <p>Design system: {{DESIGN_SOURCE}}</p>
+            <div class="wf-key">
+                <span
+                    ><span class="wf-dot be"></span>hover a box: backend
+                    mapping</span
+                >
+                <span
+                    ><span class="wf-dot ds"></span>+ design-system
+                    mapping</span
+                >
+                <span
+                    ><span class="wf-dot guess"></span>? = guessed mapping (not
+                    in DESIGN.md)</span
+                >
+            </div>
+        </div>
 
-<div class="wf-legend">
-  <h1>{{FEATURE_NAME}}</h1>
-  <p>Backend change: {{ONE_LINE_DESCRIPTION_OF_THE_CHANGE}}</p>
-  <p>Affected screens: {{SCREEN_LIST}}</p>
-  <p>Design system: {{DESIGN_SOURCE}}</p>
-  <div class="wf-key">
-    <span><span class="wf-dot be"></span>hover a box: backend mapping</span>
-    <span><span class="wf-dot ds"></span>+ design-system mapping</span>
-    <span><span class="wf-dot guess"></span>? = guessed mapping (not in design.md)</span>
-  </div>
-</div>
+        <!-- SCREEN TABS -->
+        <div class="wf-tabs" role="tablist">
+            <button
+                class="wf-tab"
+                role="tab"
+                aria-selected="true"
+                data-screen="s1"
+            >
+                Screen 1 name
+            </button>
+            <button
+                class="wf-tab"
+                role="tab"
+                aria-selected="false"
+                data-screen="s2"
+            >
+                Screen 2 name
+            </button>
+        </div>
 
-<!-- SCREEN TABS -->
-<div class="wf-tabs" role="tablist">
-  <button class="wf-tab" role="tab" aria-selected="true"  data-screen="s1">Screen 1 name</button>
-  <button class="wf-tab" role="tab" aria-selected="false" data-screen="s2">Screen 2 name</button>
-</div>
+        <!-- SCREEN 1 -->
+        <div class="wf-panel" data-screen-panel="s1">
+            <!-- STATE TABS (only if this screen has multiple states) -->
+            <div class="wf-tabs wf-states" role="tablist">
+                <button
+                    class="wf-tab"
+                    role="tab"
+                    aria-selected="true"
+                    data-state="s1-default"
+                >
+                    Default
+                </button>
+                <button
+                    class="wf-tab"
+                    role="tab"
+                    aria-selected="false"
+                    data-state="s1-empty"
+                >
+                    Empty
+                </button>
+                <button
+                    class="wf-tab"
+                    role="tab"
+                    aria-selected="false"
+                    data-state="s1-error"
+                >
+                    Error
+                </button>
+            </div>
 
-<!-- SCREEN 1 -->
-<div class="wf-panel" data-screen-panel="s1">
-  <!-- STATE TABS (only if this screen has multiple states) -->
-  <div class="wf-tabs wf-states" role="tablist">
-    <button class="wf-tab" role="tab" aria-selected="true"  data-state="s1-default">Default</button>
-    <button class="wf-tab" role="tab" aria-selected="false" data-state="s1-empty">Empty</button>
-    <button class="wf-tab" role="tab" aria-selected="false" data-state="s1-error">Error</button>
-  </div>
+            <div data-state-panel="s1-default">
+                <div class="wf-box wf-nav">Top nav</div>
+                <div class="wf-row" style="margin-top: 12px">
+                    <div class="wf-box wf-sidebar wf-tall">Sidebar</div>
+                    <div class="wf-col">
+                        <div
+                            class="wf-box"
+                            data-backend="refund_reason (new TEXT column)"
+                            data-ds="TextArea / size md"
+                        >
+                            Refund reason field
+                        </div>
+                        <div
+                            class="wf-box"
+                            data-backend="POST /refunds endpoint"
+                            data-ds="Button / primary"
+                        >
+                            Submit refund
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  <div data-state-panel="s1-default">
-    <div class="wf-box wf-nav">Top nav</div>
-    <div class="wf-row" style="margin-top:12px">
-      <div class="wf-box wf-sidebar wf-tall">Sidebar</div>
-      <div class="wf-col">
-        <div class="wf-box" data-backend="refund_reason (new TEXT column)" data-ds="TextArea / size md">Refund reason field</div>
-        <div class="wf-box" data-backend="POST /refunds endpoint" data-ds="Button / primary">Submit refund</div>
-      </div>
-    </div>
-  </div>
+            <div data-state-panel="s1-empty" hidden>
+                <div class="wf-box wf-taller wf-placeholder">
+                    No refunds yet — empty state
+                </div>
+            </div>
 
-  <div data-state-panel="s1-empty" hidden>
-    <div class="wf-box wf-taller wf-placeholder">No refunds yet — empty state</div>
-  </div>
+            <div data-state-panel="s1-error" hidden>
+                <div
+                    class="wf-box wf-taller wf-placeholder"
+                    data-ds="guess: Alert / error"
+                >
+                    Error: refund failed
+                </div>
+            </div>
+        </div>
 
-  <div data-state-panel="s1-error" hidden>
-    <div class="wf-box wf-taller wf-placeholder" data-ds="guess: Alert / error">Error: refund failed</div>
-  </div>
-</div>
+        <!-- SCREEN 2 -->
+        <div class="wf-panel" data-screen-panel="s2" hidden>
+            <div class="wf-grid" style="--cols: 3">
+                <div class="wf-box wf-tall">Card</div>
+                <div class="wf-box wf-tall">Card</div>
+                <div class="wf-box wf-tall">Card</div>
+            </div>
 
-<!-- SCREEN 2 -->
-<div class="wf-panel" data-screen-panel="s2" hidden>
-  <div class="wf-grid" style="--cols:3">
-    <div class="wf-box wf-tall">Card</div>
-    <div class="wf-box wf-tall">Card</div>
-    <div class="wf-box wf-tall">Card</div>
-  </div>
-</div>
+            <!-- TABLE: use .wf-table (one dashed frame, hairline cells). Header = real
+       column names; body rows are placeholders ("—"), never real data. -->
+            <div
+                class="wf-box wf-table"
+                style="--tcols: 4; margin-top: 12px"
+                data-backend="GET /refunds"
+                data-ds="DataGrid / striped"
+            >
+                <div class="wf-tr">
+                    <div class="wf-th">Order</div>
+                    <div class="wf-th">Reason</div>
+                    <div class="wf-th">Amount</div>
+                    <div class="wf-th">Status</div>
+                </div>
+                <div class="wf-tr">
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                </div>
+                <div class="wf-tr">
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                    <div class="wf-td wf-placeholder">—</div>
+                </div>
+            </div>
+        </div>
 
-<script>
-// Minimal vanilla tab switching for screens and per-screen states. No deps.
-function bindTabs(listSelector, attr, panelAttr) {
-  document.querySelectorAll(listSelector).forEach(function (list) {
-    list.querySelectorAll('.wf-tab').forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var key = tab.getAttribute(attr);
-        list.querySelectorAll('.wf-tab').forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
-        tab.setAttribute('aria-selected', 'true');
-        // scope panels to the same container as the tab list
-        var scope = list.closest('.wf-panel') || document;
-        scope.querySelectorAll('[' + panelAttr + ']').forEach(function (p) {
-          p.hidden = p.getAttribute(panelAttr) !== key;
-        });
-      });
-    });
-  });
-}
-bindTabs('.wf-tabs:not(.wf-states)', 'data-screen', 'data-screen-panel');
-bindTabs('.wf-states', 'data-state', 'data-state-panel');
-</script>
+        <script>
+            // Minimal vanilla tab switching for screens and per-screen states. No deps.
+            function bindTabs(listSelector, attr, panelAttr) {
+                document
+                    .querySelectorAll(listSelector)
+                    .forEach(function (list) {
+                        list.querySelectorAll(".wf-tab").forEach(
+                            function (tab) {
+                                tab.addEventListener("click", function () {
+                                    var key = tab.getAttribute(attr);
+                                    list.querySelectorAll(".wf-tab").forEach(
+                                        function (t) {
+                                            t.setAttribute(
+                                                "aria-selected",
+                                                "false",
+                                            );
+                                        },
+                                    );
+                                    tab.setAttribute("aria-selected", "true");
+                                    // scope panels to the same container as the tab list
+                                    var scope =
+                                        list.closest(".wf-panel") || document;
+                                    scope
+                                        .querySelectorAll("[" + panelAttr + "]")
+                                        .forEach(function (p) {
+                                            p.hidden =
+                                                p.getAttribute(panelAttr) !==
+                                                key;
+                                        });
+                                });
+                            },
+                        );
+                    });
+            }
+            bindTabs(
+                ".wf-tabs:not(.wf-states)",
+                "data-screen",
+                "data-screen-panel",
+            );
+            bindTabs(".wf-states", "data-state", "data-state-panel");
+        </script>
 
-<!-- ============================================================
+        <!-- ============================================================
      COMMENT LAYER — review feedback. Chrome, not wireframe content.
      Frozen: copied verbatim from the template, never hand-edited.
      Lives on its own stacking context above the wireframe; the whole
      layer can be hidden with the toggle so the wireframe reads clean.
      ============================================================ -->
-<div id="wfc-layer" aria-hidden="false">
-  <button id="wfc-toggle" type="button" title="Show/hide review comments">💬 Comments (<span id="wfc-count">0</span>)</button>
-  <aside id="wfc-panel" hidden>
-    <header>
-      <strong>Review comments</strong>
-      <button id="wfc-panel-close" type="button" title="Hide panel">×</button>
-    </header>
-    <p class="wfc-hint">Click any box in the wireframe to comment on it. Then copy the feedback block and paste it back to the agent.</p>
-    <ol id="wfc-list"></ol>
-    <div class="wfc-actions">
-      <button id="wfc-copy" type="button">Copy feedback block</button>
-      <span id="wfc-copied" hidden>Copied ✓</span>
-    </div>
-  </aside>
-</div>
+        <div id="wfc-layer" aria-hidden="false">
+            <button
+                id="wfc-toggle"
+                type="button"
+                title="Show/hide review comments"
+            >
+                💬 Comments (<span id="wfc-count">0</span>)
+            </button>
+            <aside id="wfc-panel" hidden>
+                <header>
+                    <strong>Review comments</strong>
+                    <button
+                        id="wfc-panel-close"
+                        type="button"
+                        title="Hide panel"
+                    >
+                        ×
+                    </button>
+                </header>
+                <p class="wfc-hint">
+                    Click any box to comment. Copy the feedback block to request
+                    changes — or, when the wireframe matches your intent,
+                    approve it to hand a sign-off block back to the agent.
+                </p>
+                <ol id="wfc-list"></ol>
+                <div class="wfc-actions">
+                    <button id="wfc-copy" type="button" class="wfc-secondary">
+                        Copy feedback
+                    </button>
+                    <button
+                        id="wfc-approve"
+                        type="button"
+                        title="Approve the wireframe and copy a sign-off handoff block for the agent"
+                    >
+                        ✓ Approve
+                    </button>
+                    <span id="wfc-copied" hidden>Copied ✓</span>
+                </div>
+            </aside>
+        </div>
 
-<script>
-// ---- Comment layer. Vanilla, no deps. Anchors comments to box + screen + state. ----
-(function () {
-  var FEATURE = document.title.replace(/^Wireframe Preview\s*[—-]\s*/, '').trim() || 'wireframe';
-  var comments = {};   // id -> { id, label, screen, state, text }
-  var seq = 0;
+        <script>
+            // ---- Comment layer. Vanilla, no deps. Anchors comments to box + screen + state. ----
+            (function () {
+                var FEATURE =
+                    document.title
+                        .replace(/^Wireframe Preview\s*[—-]\s*/, "")
+                        .trim() || "wireframe";
+                var STORAGE_KEY = "wfc:" + location.pathname;
+                var comments = {}; // id -> { id, label, screen, state, text }
+                var seq = 0;
 
-  // Auto-stamp a stable id on every box so the agent never hand-writes ids and
-  // the id survives relabeling. Deterministic order = stable across reloads of the same file.
-  document.querySelectorAll('.wf-box').forEach(function (box, i) {
-    if (!box.getAttribute('data-wf-id')) box.setAttribute('data-wf-id', 'wf-' + (i + 1));
-  });
+                function saveComments() {
+                    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(comments)); } catch(e) {}
+                }
+                function loadComments() {
+                    try {
+                        var saved = localStorage.getItem(STORAGE_KEY);
+                        if (saved) comments = JSON.parse(saved);
+                    } catch(e) {}
+                }
+                loadComments();
 
-  function labelOf(box) {
-    // Only the box's own direct text nodes — excludes injected children like .wfc-pin.
-    var t = '';
-    box.childNodes.forEach(function (n) { if (n.nodeType === 3) t += n.textContent; });
-    t = t.trim().replace(/\s+/g, ' ');
-    return t.length > 60 ? t.slice(0, 57) + '…' : t || '(unlabeled box)';
-  }
-  function screenOf(box) {
-    var panel = box.closest('[data-screen-panel]');
-    if (!panel) return '';
-    var key = panel.getAttribute('data-screen-panel');
-    var tab = document.querySelector('.wf-tab[data-screen="' + key + '"]');
-    return tab ? tab.textContent.trim() : key;
-  }
-  function stateOf(box) {
-    var sp = box.closest('[data-state-panel]');
-    if (!sp) return '';
-    var key = sp.getAttribute('data-state-panel');
-    var tab = document.querySelector('.wf-tab[data-state="' + key + '"]');
-    return tab ? tab.textContent.trim() : '';
-  }
+                // Auto-stamp a stable id on every box so the agent never hand-writes ids and
+                // the id survives relabeling. Deterministic order = stable across reloads of the same file.
+                document.querySelectorAll(".wf-box").forEach(function (box, i) {
+                    if (!box.getAttribute("data-wf-id"))
+                        box.setAttribute("data-wf-id", "wf-" + (i + 1));
+                });
 
-  var layer = document.getElementById('wfc-layer');
-  var panel = document.getElementById('wfc-panel');
-  var listEl = document.getElementById('wfc-list');
-  var countEl = document.getElementById('wfc-count');
+                function labelOf(box) {
+                    // Only the box's own direct text nodes — excludes injected children like .wfc-pin.
+                    var t = "";
+                    box.childNodes.forEach(function (n) {
+                        if (n.nodeType === 3) t += n.textContent;
+                    });
+                    t = t.trim().replace(/\s+/g, " ");
+                    return t.length > 60
+                        ? t.slice(0, 57) + "…"
+                        : t || "(unlabeled box)";
+                }
+                function screenOf(box) {
+                    var panel = box.closest("[data-screen-panel]");
+                    if (!panel) return "";
+                    var key = panel.getAttribute("data-screen-panel");
+                    var tab = document.querySelector(
+                        '.wf-tab[data-screen="' + key + '"]',
+                    );
+                    return tab ? tab.textContent.trim() : key;
+                }
+                function stateOf(box) {
+                    var sp = box.closest("[data-state-panel]");
+                    if (!sp) return "";
+                    var key = sp.getAttribute("data-state-panel");
+                    var tab = document.querySelector(
+                        '.wf-tab[data-state="' + key + '"]',
+                    );
+                    return tab ? tab.textContent.trim() : "";
+                }
 
-  function refresh() {
-    var ids = Object.keys(comments);
-    countEl.textContent = ids.length;
-    listEl.innerHTML = '';
-    ids.forEach(function (id) {
-      var c = comments[id];
-      var li = document.createElement('li');
-      li.innerHTML =
-        '<label class="wfc-item">' +
-          '<input type="checkbox" class="wfc-done">' +
-          '<span class="wfc-meta">[' + c.id + '] ' + esc(c.label) +
-            ' <em>' + esc(c.screen) + (c.state ? ' / ' + esc(c.state) : '') + '</em></span>' +
-        '</label>' +
-        '<div class="wfc-text">' + esc(c.text) + '</div>';
-      listEl.appendChild(li);
-    });
-    // marker on each commented box
-    document.querySelectorAll('.wf-box[data-wf-commented]').forEach(function (b) {
-      if (!comments[b.getAttribute('data-wf-id')]) b.removeAttribute('data-wf-commented');
-    });
-  }
-  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+                var layer = document.getElementById("wfc-layer");
+                var panel = document.getElementById("wfc-panel");
+                var listEl = document.getElementById("wfc-list");
+                var countEl = document.getElementById("wfc-count");
 
-  // Click a box → open a small popover pinned to it.
-  document.addEventListener('click', function (e) {
-    var box = e.target.closest('.wf-box');
-    if (!box || e.target.closest('.wfc-pop') || e.target.closest('#wfc-layer')) return;
-    openPopover(box);
-  });
+                function restorePins() {
+                    Object.keys(comments).forEach(function (id) {
+                        var box = document.querySelector('[data-wf-id="' + id + '"]');
+                        if (box) {
+                            box.setAttribute("data-wf-commented", "1");
+                            if (!box.querySelector(".wfc-pin")) {
+                                var pin = document.createElement("span");
+                                pin.className = "wfc-pin";
+                                pin.textContent = "💬";
+                                box.appendChild(pin);
+                            }
+                        }
+                    });
+                }
 
-  var pop = null;
-  function openPopover(box) {
-    closePopover();
-    var id = box.getAttribute('data-wf-id');
-    var existing = comments[id];
-    pop = document.createElement('div');
-    pop.className = 'wfc-pop';
-    pop.innerHTML =
-      '<div class="wfc-pop-meta">[' + id + '] ' + esc(labelOf(box)) + '</div>' +
-      '<textarea class="wfc-pop-input" rows="2" placeholder="What should change here?">' +
-        (existing ? esc(existing.text) : '') + '</textarea>' +
-      '<div class="wfc-pop-actions">' +
-        (existing ? '<button type="button" class="wfc-pop-del">Delete</button>' : '') +
-        '<button type="button" class="wfc-pop-cancel">Cancel</button>' +
-        '<button type="button" class="wfc-pop-save">Save</button>' +
-      '</div>';
-    var r = box.getBoundingClientRect();
-    pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
-    pop.style.left = (window.scrollX + r.left) + 'px';
-    document.body.appendChild(pop);
-    var ta = pop.querySelector('.wfc-pop-input'); ta.focus();
-    pop.querySelector('.wfc-pop-save').onclick = function () {
-      var text = ta.value.trim();
-      if (!text) { closePopover(); return; }
-      comments[id] = { id: id, label: labelOf(box), screen: screenOf(box), state: stateOf(box), text: text };
-      box.setAttribute('data-wf-commented', '1');
-      if (!box.querySelector('.wfc-pin')) {
-        var pin = document.createElement('span'); pin.className = 'wfc-pin'; pin.textContent = '💬';
-        box.appendChild(pin);
-      }
-      closePopover(); refresh(); showPanel();
-    };
-    var del = pop.querySelector('.wfc-pop-del');
-    if (del) del.onclick = function () { delete comments[id]; box.removeAttribute('data-wf-commented'); var p = box.querySelector('.wfc-pin'); if (p) p.remove(); closePopover(); refresh(); };
-    pop.querySelector('.wfc-pop-cancel').onclick = closePopover;
-  }
-  function closePopover() { if (pop) { pop.remove(); pop = null; } }
+                function deleteComment(id) {
+                    var box = document.querySelector('[data-wf-id="' + id + '"]');
+                    if (box) {
+                        box.removeAttribute("data-wf-commented");
+                        var p = box.querySelector(".wfc-pin");
+                        if (p) p.remove();
+                    }
+                    delete comments[id];
+                    saveComments();
+                    refresh();
+                }
 
-  function showPanel() { panel.hidden = false; }
-  document.getElementById('wfc-toggle').onclick = function () { panel.hidden = !panel.hidden; };
-  document.getElementById('wfc-panel-close').onclick = function () { panel.hidden = true; };
+                function refresh() {
+                    var ids = Object.keys(comments);
+                    countEl.textContent = ids.length;
+                    listEl.innerHTML = "";
+                    ids.forEach(function (id) {
+                        var c = comments[id];
+                        var li = document.createElement("li");
+                        li.innerHTML =
+                            '<div class="wfc-item-row">' +
+                            '<label class="wfc-item">' +
+                            '<input type="checkbox" class="wfc-done">' +
+                            '<span class="wfc-meta">[' +
+                            c.id +
+                            "] " +
+                            esc(c.label) +
+                            " <em>" +
+                            esc(c.screen) +
+                            (c.state ? " / " + esc(c.state) : "") +
+                            "</em></span>" +
+                            "</label>" +
+                            '<button type="button" class="wfc-list-del" data-id="' + esc(id) + '" title="Delete comment">×</button>' +
+                            "</div>" +
+                            '<div class="wfc-text">' +
+                            esc(c.text) +
+                            "</div>";
+                        listEl.appendChild(li);
+                    });
+                    // wire delete buttons
+                    listEl.querySelectorAll(".wfc-list-del").forEach(function (btn) {
+                        btn.onclick = function () { deleteComment(btn.getAttribute("data-id")); };
+                    });
+                    // marker on each commented box
+                    document
+                        .querySelectorAll(".wf-box[data-wf-commented]")
+                        .forEach(function (b) {
+                            if (!comments[b.getAttribute("data-wf-id")])
+                                b.removeAttribute("data-wf-commented");
+                        });
+                }
+                function esc(s) {
+                    var d = document.createElement("div");
+                    d.textContent = s == null ? "" : s;
+                    return d.innerHTML;
+                }
 
-  // Build the robust, parseable feedback block.
-  document.getElementById('wfc-copy').onclick = function () {
-    var ids = Object.keys(comments);
-    if (!ids.length) return;
-    var lines = [];
-    lines.push('===== WIREFRAME FEEDBACK: ' + FEATURE + ' =====');
-    lines.push('Apply ONLY these changes. Do not modify any element not listed below.');
-    lines.push('Match each item by its id (the label is for human reference). Each item is');
-    lines.push('scoped to one screen and state — edit it only there.');
-    lines.push('');
-    ids.forEach(function (id) {
-      var c = comments[id];
-      lines.push('[#' + c.id + '] label="' + c.label + '" | screen="' + c.screen + '" | state="' + (c.state || 'default') + '"');
-      lines.push('  → ' + c.text);
-      lines.push('');
-    });
-    lines.push('===== END FEEDBACK (' + ids.length + ' item' + (ids.length === 1 ? '' : 's') + ') =====');
-    var block = lines.join('\n');
-    var copied = document.getElementById('wfc-copied');
-    function flash() { copied.hidden = false; setTimeout(function () { copied.hidden = true; }, 1500); }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(block).then(flash, function () { fallbackCopy(block); flash(); });
-    } else { fallbackCopy(block); flash(); }
-  };
-  function fallbackCopy(text) {
-    var ta = document.createElement('textarea'); ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta);
-    ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove();
-  }
+                // Click a box → open a small popover pinned to it.
+                document.addEventListener("click", function (e) {
+                    var box = e.target.closest(".wf-box");
+                    if (
+                        !box ||
+                        e.target.closest(".wfc-pop") ||
+                        e.target.closest("#wfc-layer")
+                    )
+                        return;
+                    openPopover(box);
+                });
 
-  // Reposition open popover on scroll/resize so it stays pinned.
-  window.addEventListener('scroll', closePopover, true);
-  window.addEventListener('resize', closePopover);
-})();
-</script>
-</body>
+                var pop = null;
+                function openPopover(box) {
+                    closePopover();
+                    var id = box.getAttribute("data-wf-id");
+                    var existing = comments[id];
+                    pop = document.createElement("div");
+                    pop.className = "wfc-pop";
+                    pop.innerHTML =
+                        '<div class="wfc-pop-meta">[' +
+                        id +
+                        "] " +
+                        esc(labelOf(box)) +
+                        "</div>" +
+                        '<textarea class="wfc-pop-input" rows="2" placeholder="What should change here?">' +
+                        (existing ? esc(existing.text) : "") +
+                        "</textarea>" +
+                        '<div class="wfc-pop-actions">' +
+                        (existing
+                            ? '<button type="button" class="wfc-pop-del">Delete</button>'
+                            : "") +
+                        '<button type="button" class="wfc-pop-cancel">Cancel</button>' +
+                        '<button type="button" class="wfc-pop-save">Save</button>' +
+                        "</div>";
+                    var r = box.getBoundingClientRect();
+                    document.body.appendChild(pop);
+                    // Clamp horizontally so the popover never spills past the viewport (no h-scroll).
+                    var margin = 8,
+                        vw = document.documentElement.clientWidth,
+                        vh = document.documentElement.clientHeight,
+                        pw = pop.offsetWidth,
+                        ph = pop.offsetHeight;
+                    var left = Math.min(r.left, vw - pw - margin);
+                    left = Math.max(margin, left);
+                    // Flip above the box if it would go off the bottom of the viewport.
+                    var top = r.bottom + 6;
+                    if (top + ph > vh - margin) top = r.top - ph - 6;
+                    top = Math.max(margin, top);
+                    pop.style.top = window.scrollY + top + "px";
+                    pop.style.left = window.scrollX + left + "px";
+                    var ta = pop.querySelector(".wfc-pop-input");
+                    ta.focus();
+                    pop.querySelector(".wfc-pop-save").onclick = function () {
+                        var text = ta.value.trim();
+                        if (!text) {
+                            closePopover();
+                            return;
+                        }
+                        comments[id] = {
+                            id: id,
+                            label: labelOf(box),
+                            screen: screenOf(box),
+                            state: stateOf(box),
+                            text: text,
+                        };
+                        box.setAttribute("data-wf-commented", "1");
+                        if (!box.querySelector(".wfc-pin")) {
+                            var pin = document.createElement("span");
+                            pin.className = "wfc-pin";
+                            pin.textContent = "💬";
+                            box.appendChild(pin);
+                        }
+                        saveComments();
+                        closePopover();
+                        refresh();
+                        showPanel();
+                    };
+                    var del = pop.querySelector(".wfc-pop-del");
+                    if (del)
+                        del.onclick = function () {
+                            deleteComment(id);
+                            closePopover();
+                        };
+                    pop.querySelector(".wfc-pop-cancel").onclick = closePopover;
+                }
+                function closePopover() {
+                    if (pop) {
+                        pop.remove();
+                        pop = null;
+                    }
+                }
+
+                function showPanel() {
+                    panel.hidden = false;
+                }
+                document.getElementById("wfc-toggle").onclick = function () {
+                    panel.hidden = !panel.hidden;
+                };
+                document.getElementById("wfc-panel-close").onclick =
+                    function () {
+                        panel.hidden = true;
+                    };
+
+                // Build the robust, parseable feedback block.
+                document.getElementById("wfc-copy").onclick = function () {
+                    var ids = Object.keys(comments);
+                    if (!ids.length) return;
+                    var lines = [];
+                    lines.push(
+                        "===== WIREFRAME FEEDBACK: " + FEATURE + " =====",
+                    );
+                    lines.push(
+                        "Apply ONLY these changes. Do not modify any element not listed below.",
+                    );
+                    lines.push(
+                        "Match each item by its id (the label is for human reference). Each item is",
+                    );
+                    lines.push(
+                        "scoped to one screen and state — edit it only there.",
+                    );
+                    lines.push("");
+                    ids.forEach(function (id) {
+                        var c = comments[id];
+                        lines.push(
+                            "[#" +
+                                c.id +
+                                '] label="' +
+                                c.label +
+                                '" | screen="' +
+                                c.screen +
+                                '" | state="' +
+                                (c.state || "default") +
+                                '"',
+                        );
+                        lines.push("  → " + c.text);
+                        lines.push("");
+                    });
+                    lines.push(
+                        "===== END FEEDBACK (" +
+                            ids.length +
+                            " item" +
+                            (ids.length === 1 ? "" : "s") +
+                            ") =====",
+                    );
+                    copyToClipboard(lines.join("\n"));
+                };
+                function fallbackCopy(text) {
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.opacity = "0";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand("copy");
+                    } catch (e) {}
+                    ta.remove();
+                }
+
+                function copyToClipboard(block) {
+                    var copied = document.getElementById("wfc-copied");
+                    function flash() {
+                        copied.hidden = false;
+                        setTimeout(function () {
+                            copied.hidden = true;
+                        }, 1500);
+                    }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard
+                            .writeText(block)
+                            .then(flash, function () {
+                                fallbackCopy(block);
+                                flash();
+                            });
+                    } else {
+                        fallbackCopy(block);
+                        flash();
+                    }
+                }
+
+                // Build the approval / sign-off handoff block. This is the TERMINAL signal:
+                // the wireframe matches the user's intent. It carries the agreed screens and
+                // the per-box backend↔design-system mapping as the understanding contract —
+                // explicitly NOT a code or visual spec.
+                document.getElementById("wfc-approve").onclick = function () {
+                    var screens = [].map.call(
+                        document.querySelectorAll(
+                            ".wf-tabs:not(.wf-states) .wf-tab",
+                        ),
+                        function (t) {
+                            return t.textContent.trim();
+                        },
+                    );
+                    var boxes = document.querySelectorAll(
+                        ".wf-box[data-backend], .wf-box[data-ds]",
+                    );
+                    var openCount = Object.keys(comments).length;
+                    var lines = [];
+                    lines.push(
+                        "===== WIREFRAME APPROVED: " + FEATURE + " =====",
+                    );
+                    lines.push(
+                        "This LOW-FIDELITY wireframe is approved as the agreed understanding of the",
+                    );
+                    lines.push(
+                        "feature's UI/UX — which screens exist and how each changed piece maps to the",
+                    );
+                    lines.push(
+                        "backend and the design system. It is NOT an implementation or visual spec:",
+                    );
+                    lines.push(
+                        "do not reproduce the grey boxes as UI or infer styling from them.",
+                    );
+                    lines.push(
+                        "Next: turn the mapping below into an implementation PLAN, then wait for the",
+                    );
+                    lines.push(
+                        "user to greenlight building. Also persist this as the approved feature-spec.",
+                    );
+                    lines.push("");
+                    lines.push("Screens: " + (screens.join(", ") || "(none)"));
+                    lines.push("");
+                    lines.push(
+                        "Mapping (id | label | screen | state | backend | design-system):",
+                    );
+                    boxes.forEach(function (box) {
+                        var id = box.getAttribute("data-wf-id");
+                        lines.push(
+                            "[#" +
+                                id +
+                                '] label="' +
+                                labelOf(box) +
+                                '"' +
+                                ' | screen="' +
+                                screenOf(box) +
+                                '"' +
+                                ' | state="' +
+                                (stateOf(box) || "default") +
+                                '"' +
+                                ' | API = "' +
+                                (box.getAttribute("data-backend") || "—") +
+                                '"' +
+                                ' | COMPONENT ="' +
+                                (box.getAttribute("data-ds") || "—") +
+                                '"',
+                        );
+                    });
+                    lines.push("");
+                    if (openCount) {
+                        lines.push(
+                            "⚠ " +
+                                openCount +
+                                " comment" +
+                                (openCount === 1 ? "" : "s") +
+                                " still open — resolve or confirm these with the user before building.",
+                        );
+                    } else {
+                        lines.push("No open comments.");
+                    }
+                    lines.push(
+                        "===== END APPROVAL (" +
+                            boxes.length +
+                            " mapped box" +
+                            (boxes.length === 1 ? "" : "es") +
+                            ", " +
+                            openCount +
+                            " open comment" +
+                            (openCount === 1 ? "" : "s") +
+                            ") =====",
+                    );
+                    copyToClipboard(lines.join("\n"));
+                };
+
+                // Restore persisted comments from localStorage on load.
+                restorePins();
+                refresh();
+
+                // Edge-aware hover tooltips: flip alignment when a centered tooltip would
+                // spill past the viewport edge, so annotations never trigger a h-scrollbar.
+                document.addEventListener(
+                    "mouseover",
+                    function (e) {
+                        var box = e.target.closest(
+                            ".wf-box[data-backend], .wf-box[data-ds]",
+                        );
+                        if (!box) return;
+                        var r = box.getBoundingClientRect();
+                        var vw = document.documentElement.clientWidth,
+                            margin = 8,
+                            half = 140; // half of tooltip max-width
+                        var center = r.left + r.width / 2;
+                        if (center + half > vw - margin)
+                            box.setAttribute("data-tip", "end");
+                        else if (center - half < margin)
+                            box.setAttribute("data-tip", "start");
+                        else box.removeAttribute("data-tip");
+                    },
+                    true,
+                );
+
+                // Reposition open popover on scroll/resize so it stays pinned.
+                window.addEventListener("scroll", closePopover, true);
+                window.addEventListener("resize", closePopover);
+            })();
+        </script>
+    </body>
 </html>

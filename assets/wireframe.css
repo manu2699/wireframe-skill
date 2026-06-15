@@ -138,6 +138,35 @@ body {
 .wf-tall { min-height: 120px; }
 .wf-taller { min-height: 200px; }
 
+/* ---- Table (low-fi, aligned columns) ----
+   A .wf-box variant, so it still gets the annotation marker, hover tooltip and
+   comment layer for free. ONE dashed frame + solid hairline cell separators
+   (never nested dashes). Cells are headers + placeholder rows, not real data. */
+.wf-box.wf-table {
+  display: block; padding: 0; min-height: 0;
+  text-align: left; overflow: visible;
+}
+.wf-tr {
+  display: grid; grid-template-columns: repeat(var(--tcols, 3), 1fr);
+  border-top: 1px solid var(--c-line);
+}
+.wf-tr:first-child { border-top: none; }
+.wf-th, .wf-td {
+  padding: 8px 10px; min-width: 0;
+  border-left: 1px solid var(--c-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wf-th:first-child, .wf-td:first-child { border-left: none; }
+.wf-th { background: var(--wf-fill); color: var(--wf-muted); font-weight: 500; }
+.wf-td { color: var(--wf-ink); }
+.wf-td.wf-placeholder { color: var(--wf-muted); font-style: italic; }
+
+/* ---- De-nest grouped boxes ----
+   A box grouped inside another box drops its dashed border for a quiet solid
+   hairline, so only the outermost frame carries the dashed signature. Keeps
+   nested regions from stacking parallel dashed lines into visual noise. */
+.wf-box .wf-box { border-style: solid; border-color: var(--c-line); }
+
 /* annotated boxes get a marker so users know to hover */
 .wf-box[data-backend], .wf-box[data-ds] { cursor: help; }
 .wf-box[data-backend]::before, .wf-box[data-ds]::before {
@@ -145,26 +174,40 @@ body {
   color: var(--wf-line); font-weight: 700;
 }
 
-/* ---- Hover annotations ---- */
+/* ---- Hover annotations ----
+   Two labeled lines (BE = backend, DS = design-system), so the endpoint and the
+   component mapping read as distinct facts instead of a cramped pipe. Long
+   endpoints wrap inside the box rather than overflowing. */
 .wf-box[data-backend]:hover::after,
 .wf-box[data-ds]:hover::after {
-  content: attr(data-backend) " | " attr(data-ds);
-  position: absolute; bottom: calc(100% + 4px); left: 50%;
+  content: "BE  " attr(data-backend) "\A" "DS  " attr(data-ds);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
   transform: translateX(-50%);
-  white-space: pre; max-width: 280px;
-  background: #222; color: #fff; font-size: 10px;
-  padding: 6px 8px; border-radius: var(--wf-radius);
+  white-space: pre-line; overflow-wrap: anywhere;
+  width: max-content; max-width: 300px;
+  background: var(--c-ink); color: #fafafa;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--c-sans); font-size: 11px; line-height: 1.55;
+  letter-spacing: -0.003em;
+  padding: 8px 10px; border-radius: 7px;
+  box-shadow: 0 8px 24px rgba(24, 24, 27, 0.22);
   z-index: 10; pointer-events: none;
   text-align: left;
 }
-/* when only one mapping exists, fall back cleanly */
-.wf-box[data-backend]:not([data-ds]):hover::after { content: "BE: " attr(data-backend); }
-.wf-box[data-ds]:not([data-backend]):hover::after { content: "DS: " attr(data-ds); }
+/* when only one mapping exists, show just that line */
+.wf-box[data-backend]:not([data-ds]):hover::after { content: "BE  " attr(data-backend); }
+.wf-box[data-ds]:not([data-backend]):hover::after { content: "DS  " attr(data-ds); }
+
+/* edge-aware alignment (data-tip set by JS) so tooltips near the viewport
+   edge flip instead of overflowing and forcing a horizontal scrollbar */
+.wf-box[data-tip="start"]:hover::after { left: 0; right: auto; transform: none; }
+.wf-box[data-tip="end"]:hover::after { left: auto; right: 0; transform: none; }
 
 /* guessed design-system mappings (data-ds starts with "guess:") render amber */
 .wf-box[data-ds^="guess:"]::before { content: "?"; color: var(--wf-tag-guess); }
 .wf-box[data-ds^="guess:"]:hover::after {
-  background: #7a4a00; border: 1px solid var(--wf-tag-guess);
+  border-left: 3px solid var(--wf-tag-guess);
+  padding-left: 9px;
 }
 
 .wf-label { font-size: 12px; }
@@ -176,8 +219,10 @@ body {
    accent so it always reads as "not the wireframe". Hideable.
    ============================================================ */
 :root {
-  --wfc-accent: #c026d3;   /* magenta — never used by wireframe boxes, so comments read as chrome */
-  --wfc-accent-soft: #fae8ff;
+  --wfc-accent: #0988c8;       /* brand blue (primary) — comment chrome, never used by wireframe boxes */
+  --wfc-accent-2: #fcc800;     /* brand yellow (secondary) */
+  --wfc-accent-2-ink: #0b0c0e; /* near-black text for readability on yellow */
+  --wfc-accent-soft: #e6f4fb;  /* soft blue tint */
   --wfc-ink: #18181b;
 }
 
@@ -196,10 +241,10 @@ body {
   font-family: var(--c-sans); font-size: 12.5px; font-weight: 500; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--wfc-accent); color: #fff; border: none;
-  padding: 9px 15px; border-radius: 999px; box-shadow: 0 4px 14px rgba(192,38,211,.28);
+  padding: 9px 15px; border-radius: 999px; box-shadow: 0 4px 14px rgba(9,136,200,.30);
   transition: transform .1s ease, box-shadow .12s ease;
 }
-#wfc-toggle:hover { box-shadow: 0 6px 18px rgba(192,38,211,.34); transform: translateY(-1px); }
+#wfc-toggle:hover { box-shadow: 0 6px 18px rgba(9,136,200,.36); transform: translateY(-1px); }
 
 /* panel — fixed, right side, scrollable */
 #wfc-panel {
@@ -231,16 +276,28 @@ body {
 .wfc-meta em { color: var(--c-ink-3); font-style: normal; }
 .wfc-done:checked ~ .wfc-meta { text-decoration: line-through; opacity: .5; }
 .wfc-text { margin: 5px 0 0 24px; color: var(--c-ink-2); line-height: 1.45; }
+.wfc-item-row { display: flex; align-items: flex-start; gap: 6px; }
+.wfc-item-row .wfc-item { flex: 1; min-width: 0; }
+.wfc-list-del {
+  flex-shrink: 0; border: none; background: none; cursor: pointer;
+  color: var(--c-ink-3); font-size: 16px; line-height: 1; padding: 1px 4px;
+  border-radius: 4px; margin-top: 1px;
+}
+.wfc-list-del:hover { color: #b91c1c; background: #fef2f2; }
 .wfc-actions {
   padding: 14px 16px; position: sticky; bottom: 0; background: var(--c-surface);
   border-top: 1px solid var(--c-line); display: flex; gap: 12px; align-items: center;
 }
-#wfc-copy {
+.wfc-actions button {
   font-family: var(--c-sans); font-size: 12.5px; font-weight: 500; cursor: pointer;
-  background: var(--wfc-accent); color: #fff; border: none;
   padding: 8px 14px; border-radius: var(--c-radius-sm);
 }
-#wfc-copy:hover { filter: brightness(.95); }
+/* Approve is the primary, terminal action — accent fill */
+#wfc-approve { background: var(--wfc-accent); color: #fff; border: 1px solid var(--wfc-accent); }
+#wfc-approve:hover { filter: brightness(.95); }
+/* Copy feedback is the secondary, iterate action — brand yellow with dark text */
+.wfc-secondary { background: var(--wfc-accent-2); color: var(--wfc-accent-2-ink); border: 1px solid var(--wfc-accent-2); }
+.wfc-secondary:hover { filter: brightness(.96); }
 #wfc-copied { color: var(--wf-tag-ds); font-size: 11.5px; font-weight: 500; }
 
 /* popover pinned to a clicked box */

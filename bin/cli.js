@@ -8,40 +8,59 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_SRC = path.join(__dirname, "..", "SKILL.md");
 const SKILL_CONTENT = fs.readFileSync(SKILL_SRC, "utf8");
+const ASSETS_SRC = path.join(__dirname, "..", "assets");
 const PKG_NAME = "wireframe-preview";
 
 const genericAgentSkill = {
   label: "Generic Agent Skill",
   type: "copy",
-  dest: () => path.join(process.cwd(), ".agents", "skills", `${PKG_NAME}.md`),
-}
+  dest: () =>
+    path.join(process.cwd(), ".agents", "skills", PKG_NAME, "SKILL.md"),
+};
 
 // Each platform entry: where to write, and how (copy vs append-section)
 const PLATFORMS = {
   claude: {
     label: "Claude Code (global)",
     type: "copy",
-    dest: () => path.join(os.homedir(), ".claude", "skills", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(os.homedir(), ".claude", "skills", PKG_NAME, "SKILL.md"),
   },
   "claude-project": {
     label: "Claude Code (project)",
     type: "copy",
-    dest: () => path.join(process.cwd(), ".claude", "skills", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(process.cwd(), ".claude", "skills", PKG_NAME, "SKILL.md"),
   },
   cursor: {
     label: "Cursor",
     type: "copy",
-    dest: () => path.join(process.cwd(), ".cursor", "rules", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(process.cwd(), ".cursor", "rules", PKG_NAME, `${PKG_NAME}.md`),
   },
   kilocode: {
     label: "Kilocode",
     type: "copy",
-    dest: () => path.join(process.cwd(), ".kilocode", "rules", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(
+        process.cwd(),
+        ".kilocode",
+        "rules",
+        PKG_NAME,
+        `${PKG_NAME}.md`,
+      ),
   },
   windsurf: {
     label: "Windsurf",
     type: "copy",
-    dest: () => path.join(process.cwd(), ".windsurf", "rules", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(
+        process.cwd(),
+        ".windsurf",
+        "rules",
+        PKG_NAME,
+        `${PKG_NAME}.md`,
+      ),
   },
   agents: {
     ...genericAgentSkill,
@@ -62,9 +81,19 @@ const PLATFORMS = {
   "amp-code": {
     label: "Amp Code",
     type: "copy",
-    dest: () => path.join(process.cwd(), ".amp", "rules", `${PKG_NAME}.md`),
+    dest: () =>
+      path.join(process.cwd(), ".amp", "rules", PKG_NAME, `${PKG_NAME}.md`),
   },
 };
+
+// Copy the assets/ folder (template.html, wireframe.css, feature-spec.md) next to the installed SKILL.md so its relative `assets/...` references resolve. Without this the agent has to reconstruct the frozen template/stylesheet from prose.
+function copyAssets(dest) {
+  if (!fs.existsSync(ASSETS_SRC)) return;
+  const assetsDest = path.join(path.dirname(dest), "assets");
+  fs.rmSync(assetsDest, { recursive: true, force: true });
+  fs.cpSync(ASSETS_SRC, assetsDest, { recursive: true });
+  console.log(`  ↳ assets/ → ${assetsDest}`);
+}
 
 function writePlatform(name, platform) {
   const dest = platform.dest();
@@ -73,6 +102,7 @@ function writePlatform(name, platform) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, SKILL_CONTENT, "utf8");
     console.log(`✓ ${platform.label} → ${dest}`);
+    copyAssets(dest);
     return;
   }
 
@@ -97,7 +127,13 @@ function removePlatform(name, platform) {
   const dest = platform.dest();
 
   if (platform.type === "copy") {
-    if (fs.existsSync(dest)) {
+    // Every copy install now lives in a dedicated <PKG_NAME>/ folder (SKILL file + assets/),
+    // so remove the whole folder. Fall back to unlinking the lone file for any legacy flat install.
+    const dir = path.dirname(dest);
+    if (path.basename(dir) === PKG_NAME && fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log(`✓ removed ${platform.label} → ${dir}`);
+    } else if (fs.existsSync(dest)) {
       fs.unlinkSync(dest);
       console.log(`✓ removed ${platform.label} → ${dest}`);
     } else {
@@ -124,17 +160,7 @@ function removePlatform(name, platform) {
 }
 
 function autoDetect() {
-  const hits = [];
-  const cwd = process.cwd();
-  const home = os.homedir();
-
-  if (fs.existsSync(path.join(home, ".claude"))) hits.push("claude");
-  if (fs.existsSync(path.join(cwd, ".agents"))) hits.push("agents");
-  if (fs.existsSync(path.join(cwd, ".cursor"))) hits.push("cursor");
-  if (fs.existsSync(path.join(cwd, ".kilocode"))) hits.push("kilocode");
-  if (fs.existsSync(path.join(cwd, ".windsurf"))) hits.push("windsurf");
-
-  return hits.length > 0 ? hits : ["agents"];
+  return ["agents"];
 }
 
 // ── CLI entry ──────────────────────────────────────────────────────────────
@@ -186,9 +212,7 @@ if (cmd === "install") {
 }
 
 if (cmd === "uninstall") {
-  const targets = platformFlag
-    ? [platformFlag]
-    : autoDetect();
+  const targets = platformFlag ? [platformFlag] : autoDetect();
 
   if (!platformFlag) console.log(`Auto-detected: ${targets.join(", ")}\n`);
 

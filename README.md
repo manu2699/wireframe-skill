@@ -75,7 +75,7 @@ The skill writes two files to `.wireframes/<feature-slug>/`:
 
 **Annotated boxes** — every box that the backend change touches shows two hover annotations:
 - `data-backend` — the concrete backend element (column, endpoint, permission)
-- `data-ds` — the design-system component mapped from your `design.md`, or a clearly marked guess if no vocabulary exists
+- `data-ds` — the design-system component mapped from your `DESIGN.md`, or a clearly marked guess if no vocabulary exists
 
 **Feedback layer** — click any box in the browser, type a note, hit "Copy feedback block," and paste it back to the agent for precise, element-anchored iteration.
 

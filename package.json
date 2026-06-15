@@ -1,6 +1,6 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
@@ -11,7 +11,17 @@
     "SKILL.md",
     "assets/"
   ],
-  "keywords": ["claude", "cursor", "codex", "kilocode", "ai-agent", "skill", "wireframe", "ux", "feature-spec"],
+  "keywords": [
+    "claude",
+    "cursor",
+    "codex",
+    "kilocode",
+    "ai-agent",
+    "skill",
+    "wireframe",
+    "ux",
+    "feature-spec"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=18"
