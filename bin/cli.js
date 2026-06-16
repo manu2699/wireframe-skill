@@ -86,7 +86,7 @@ const PLATFORMS = {
   },
 };
 
-// Copy the assets/ folder (template.html, wireframe.css, feature-spec.md) next to the installed SKILL.md so its relative `assets/...` references resolve. Without this the agent has to reconstruct the frozen template/stylesheet from prose.
+// Copy the assets/ folder (template.html shell, wireframe.css, dist/wireframe-app.js, feature-spec.md, DESIGN.md) next to the installed SKILL.md so its relative `assets/...` references resolve. Recursive, so the prebuilt app bundle in dist/ ships too. Without this the agent has to reconstruct the frozen shell/stylesheet/bundle from prose.
 function copyAssets(dest) {
   if (!fs.existsSync(ASSETS_SRC)) return;
   const assetsDest = path.join(path.dirname(dest), "assets");
@@ -163,6 +163,139 @@ function autoDetect() {
   return ["agents"];
 }
 
+// ── MCP server registration ─────────────────────────────────────────────────
+// The skill (above) goes into a harness's rules/skills dir. The MCP server is
+// separate: it must be registered in the harness's own MCP config. The launch
+// command is identical everywhere (no global install); only the file + format
+// differ. Strategy: auto-merge JSON where safe, print a snippet otherwise.
+
+const MCP_NAME = PKG_NAME; // "wireframe-preview"
+const MCP_SERVER = { command: "npx", args: ["-y", "wireframe-mcp"] };
+
+const MCP_TARGETS = {
+  "claude-project": {
+    label: "Claude Code (project)",
+    format: "json",
+    key: "mcpServers",
+    file: () => path.join(process.cwd(), ".mcp.json"),
+  },
+  cursor: {
+    label: "Cursor",
+    format: "json",
+    key: "mcpServers",
+    file: () => path.join(process.cwd(), ".cursor", "mcp.json"),
+  },
+  windsurf: {
+    label: "Windsurf",
+    format: "json",
+    key: "mcpServers",
+    file: () =>
+      path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json"),
+  },
+  vscode: {
+    label: "VS Code (Copilot agent)",
+    format: "json",
+    key: "servers", // VS Code uses "servers", not "mcpServers"
+    file: () => path.join(process.cwd(), ".vscode", "mcp.json"),
+  },
+  codex: {
+    label: "Codex (OpenAI)",
+    format: "toml",
+    file: () => path.join(os.homedir(), ".codex", "config.toml"),
+  },
+  cline: {
+    label: "Cline",
+    format: "print", // path lives deep in VS Code globalStorage, varies by OS/editor
+    file: () => "<VS Code globalStorage>/.../cline_mcp_settings.json",
+  },
+};
+
+function jsonSnippet(key) {
+  return JSON.stringify({ [key]: { [MCP_NAME]: MCP_SERVER } }, null, 2);
+}
+function tomlSnippet() {
+  return `[mcp_servers.${MCP_NAME}]\ncommand = "${MCP_SERVER.command}"\nargs = ${JSON.stringify(
+    MCP_SERVER.args,
+  )}`;
+}
+
+function printMcpSnippet(name, t, reason) {
+  const key = t.key || "mcpServers";
+  const body = t.format === "toml" ? tomlSnippet() : jsonSnippet(key);
+  console.log(`\n${t.label} — add this MCP server manually:`);
+  console.log(`  file: ${t.file()}`);
+  if (reason) console.log(`  (${reason})`);
+  console.log(
+    body
+      .split("\n")
+      .map((l) => "    " + l)
+      .join("\n"),
+  );
+}
+
+function registerMcp(name, t) {
+  // Print-only targets (TOML / unknown path): never edit, just show the snippet.
+  if (t.format !== "json") {
+    printMcpSnippet(name, t);
+    return;
+  }
+  const file = t.file();
+  const key = t.key;
+
+  if (fs.existsSync(file)) {
+    const raw = fs.readFileSync(file, "utf8");
+    let obj;
+    try {
+      obj = JSON.parse(raw);
+    } catch (e) {
+      // JSONC comments (Cursor/VS Code allow them) make this unsafe to rewrite.
+      printMcpSnippet(name, t, "existing config has comments — edit it by hand to avoid clobbering");
+      return;
+    }
+    obj[key] = obj[key] || {};
+    if (obj[key][MCP_NAME]) {
+      console.log(`  ${t.label}: already registered → ${file}`);
+      return;
+    }
+    obj[key][MCP_NAME] = MCP_SERVER;
+    fs.writeFileSync(file + ".bak", raw, "utf8");
+    fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
+    console.log(`✓ ${t.label}: added MCP server → ${file} (backup: ${path.basename(file)}.bak)`);
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, jsonSnippet(key) + "\n", "utf8");
+  console.log(`✓ ${t.label}: created ${file} with the MCP server`);
+}
+
+function removeMcp(name, t) {
+  if (t.format !== "json") {
+    console.log(`  ${t.label}: remove the [${MCP_NAME}] entry from ${t.file()} by hand`);
+    return;
+  }
+  const file = t.file();
+  if (!fs.existsSync(file)) {
+    console.log(`  ${t.label}: no config at ${file}`);
+    return;
+  }
+  let obj;
+  try {
+    obj = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (e) {
+    console.log(`  ${t.label}: config has comments — remove the "${MCP_NAME}" entry by hand`);
+    return;
+  }
+  const key = t.key;
+  if (obj[key] && obj[key][MCP_NAME]) {
+    delete obj[key][MCP_NAME];
+    fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
+    console.log(`✓ ${t.label}: removed MCP server → ${file}`);
+  } else {
+    console.log(`  ${t.label}: not registered`);
+  }
+}
+
 // ── CLI entry ──────────────────────────────────────────────────────────────
 
 const [, , cmd, ...args] = process.argv;
@@ -173,12 +306,21 @@ if (!cmd || cmd === "help") {
 wireframe-preview — install a low-fidelity wireframe skill into your AI agent
 
 Usage:
-  npx feature-spec install                   auto-detect agents in this project
-  npx feature-spec install <platform>        install for one platform
-  npx feature-spec uninstall [platform]      remove (omit platform to auto-detect)
-  npx feature-spec list                      show supported platforms
+  npx wireframe-preview install                auto-detect agents in this project
+  npx wireframe-preview install <platform>     install the skill for one platform
+  npx wireframe-preview uninstall [platform]   remove the skill (omit to auto-detect)
+  npx wireframe-preview list                   show supported platforms
 
-Platforms: ${Object.keys(PLATFORMS).join(", ")}
+  npx wireframe-preview mcp <platform>         register the optional MCP server
+  npx wireframe-preview mcp                     print MCP config for every harness
+  npx wireframe-preview mcp --print <platform>  print (never edit) the MCP config
+  npx wireframe-preview mcp --remove <platform> unregister the MCP server
+
+The MCP server adds the live, no-paste feedback loop + the /editor direct-edit UI.
+It is optional and only works on a local harness. The skill works without it.
+
+Skill platforms: ${Object.keys(PLATFORMS).join(", ")}
+MCP platforms:   ${Object.keys(MCP_TARGETS).join(", ")}
 `);
   process.exit(0);
 }
@@ -212,6 +354,20 @@ if (cmd === "install") {
 }
 
 if (cmd === "uninstall") {
+  // `uninstall mcp <platform>` → unregister the MCP server (skill left alone)
+  if (args[0] === "mcp") {
+    const plat = args.find((a) => !a.startsWith("--") && a !== "mcp");
+    const list = plat ? [plat] : Object.keys(MCP_TARGETS);
+    for (const t of list) {
+      if (!MCP_TARGETS[t]) {
+        console.error(`Unknown MCP platform: ${t}`);
+        continue;
+      }
+      removeMcp(t, MCP_TARGETS[t]);
+    }
+    process.exit(0);
+  }
+
   const targets = platformFlag ? [platformFlag] : autoDetect();
 
   if (!platformFlag) console.log(`Auto-detected: ${targets.join(", ")}\n`);
@@ -223,6 +379,32 @@ if (cmd === "uninstall") {
     }
     removePlatform(t, PLATFORMS[t]);
   }
+  process.exit(0);
+}
+
+if (cmd === "mcp") {
+  const printOnly = args.includes("--print");
+  const remove = args.includes("--remove");
+
+  // No platform → safest default: print the config for every harness, edit nothing.
+  if (!platformFlag) {
+    console.log(
+      "MCP launch command (same everywhere): npx -y wireframe-mcp\n" +
+        "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
+    );
+    for (const [name, t] of Object.entries(MCP_TARGETS)) printMcpSnippet(name, t);
+    process.exit(0);
+  }
+
+  const t = MCP_TARGETS[platformFlag];
+  if (!t) {
+    console.error(`Unknown MCP platform: ${platformFlag}`);
+    console.error(`MCP platforms: ${Object.keys(MCP_TARGETS).join(", ")}`);
+    process.exit(1);
+  }
+  if (remove) removeMcp(platformFlag, t);
+  else if (printOnly) printMcpSnippet(platformFlag, t);
+  else registerMcp(platformFlag, t);
   process.exit(0);
 }
 
