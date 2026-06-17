@@ -26,6 +26,7 @@ import { WebSocketServer } from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS_DIR = path.join(__dirname, "..", "assets");
+const PKG_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8")).version;
 
 // ── Feature registry ─────────────────────────────────────────────────────────
 // slug → { dir, queue:[block], waiters:[resolve], approved:bool, openComments:int }
@@ -188,7 +189,7 @@ function openInBrowser(url) {
   exec(cmd, () => {});
 }
 
-// Copy the frozen assets (stylesheet + built Solid app bundle) into the
+// Copy the frozen assets (stylesheet + built React app bundle) into the
 // wireframe dir if absent, so the agent only authors wireframe.html (the model).
 function ensureAssets(dir) {
   const copies = [
@@ -263,7 +264,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: "wireframe-preview", version: "1.0.0" },
+  { name: "wireframe-preview", version: PKG_VERSION },
   { capabilities: { tools: {} } },
 );
 

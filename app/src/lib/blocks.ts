@@ -1,9 +1,14 @@
 // Feedback / approval block builders. The FEEDBACK format is byte-identical to
 // the original template (mcp/server.js regex-parses the header + item count).
 // APPROVAL adds an optional `flow=` column, additively — header/count unchanged.
+//
+// `metaOf` is injected (not imported from a global) so these stay pure functions
+// of their inputs.
 
-import type { Comment, WFModel, WFNode } from "./types";
-import { metaOf } from "./store";
+import type { Comment, WFModel, WFNode } from "../types";
+import type { IdMeta } from "../model/stamp";
+
+type MetaLookup = (id: string) => IdMeta | undefined;
 
 interface Annotated {
   id: string;
@@ -23,7 +28,7 @@ function flowOf(n: { goto?: string; opens?: string; action?: string }): string |
 }
 
 // Collect every annotated (backend/ds/flow) element in stable id order.
-export function collectAnnotated(model: WFModel): Annotated[] {
+export function collectAnnotated(model: WFModel, metaOf: MetaLookup): Annotated[] {
   const out: Annotated[] = [];
   const visit = (n: WFNode & { _id?: string }) => {
     if (n.type === "nav") {
@@ -72,9 +77,9 @@ export function buildFeedback(feature: string, comments: Record<string, Comment>
   return lines.join("\n");
 }
 
-export function buildApproval(model: WFModel, comments: Record<string, Comment>): string {
+export function buildApproval(model: WFModel, comments: Record<string, Comment>, metaOf: MetaLookup): string {
   const screens = model.screens.map((s) => s.name);
-  const boxes = collectAnnotated(model);
+  const boxes = collectAnnotated(model, metaOf);
   const openCount = Object.keys(comments).length;
   const lines = [
     "===== WIREFRAME APPROVED: " + model.feature + " =====",

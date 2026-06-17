@@ -21,16 +21,16 @@ bunx wireframe-preview install
 This auto-detects which agents are present in your project and installs accordingly. To target a specific agent (swap `npx` for `pnpm dlx` or `bunx` as preferred):
 
 ```bash
-npx feature-spec install claude          # Claude Code (global ~/.claude/skills/)
-npx feature-spec install claude-project  # Claude Code (project .claude/skills/)
-npx feature-spec install cursor          # Cursor (.cursor/rules/)
-npx feature-spec install kilocode        # Kilocode (.kilocode/rules/)
-npx feature-spec install windsurf        # Windsurf (.windsurf/rules/)
-npx feature-spec install agents          # Generic .agents/skills folder
-npx feature-spec install codex           # Codex / OpenAI (.agents/skills)
-npx feature-spec install antigravity     # Antigravity (.agents/skills)
-npx feature-spec install copilot         # GitHub Copilot (.agents/skills)
-npx feature-spec install amp-code        # Amp Code (.amp/rules/)
+npx wireframe-preview install claude          # Claude Code (global ~/.claude/skills/)
+npx wireframe-preview install claude-project  # Claude Code (project .claude/skills/)
+npx wireframe-preview install cursor          # Cursor (.cursor/rules/)
+npx wireframe-preview install kilocode        # Kilocode (.kilocode/rules/)
+npx wireframe-preview install windsurf        # Windsurf (.windsurf/rules/)
+npx wireframe-preview install agents          # Generic .agents/skills folder
+npx wireframe-preview install codex           # Codex / OpenAI (.agents/skills)
+npx wireframe-preview install antigravity     # Antigravity (.agents/skills)
+npx wireframe-preview install copilot         # GitHub Copilot (.agents/skills)
+npx wireframe-preview install amp-code        # Amp Code (.amp/rules/)
 ```
 
 ### Uninstall
@@ -64,7 +64,7 @@ Once installed, invoke the skill inside your agent. Point it at whatever you hav
 You author one small JSON model (schema in [SKILL.md](SKILL.md)); the skill writes three files to `.wireframes/<feature-slug>/`:
 - `wireframe.html` — a thin shell. The agent edits **only** the JSON inlined in its `<script id="wf-model">` block; the rest links the CSS and app bundle. Open this in your browser.
 - `wireframe.css` — frozen stylesheet, copied verbatim, never edited
-- `wireframe-app.js` — prebuilt Solid renderer/operating layer, copied verbatim, never edited
+- `wireframe-app.js` — prebuilt React renderer/operating layer, copied verbatim, never edited
 
 The MCP server auto-copies `wireframe.css` + `wireframe-app.js` on `wireframe_open`; for the standalone (no-MCP) path the skill copies them itself.
 
@@ -167,10 +167,10 @@ Then inside your agent:
 
 ## Build / development
 
-The renderer is a small Solid app, built with Vite (`vite-plugin-solid`). Source lives in `app/src/`; the build emits a single self-contained bundle:
+The renderer is a React app (shadcn/ui + Tailwind chrome), built with Vite (`@vitejs/plugin-react`). Source lives in `app/src/`; the build compiles the Tailwind stylesheet and emits a single self-contained bundle:
 
 ```bash
-npm run build   # vite build → assets/dist/wireframe-app.js (~35KB)
+npm run build   # tailwindcss → assets/wireframe.css, vite build → assets/dist/wireframe-app.js (~90KB gz)
 ```
 
 The skill copies that bundle verbatim into each `.wireframes/<slug>/` alongside the frozen `wireframe.css`. Agents never edit `app/src/`, `wireframe.css`, or `wireframe-app.js` — they only author the `#wf-model` JSON inside the `wireframe.html` shell.

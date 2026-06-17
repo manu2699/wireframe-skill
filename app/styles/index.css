@@ -1,0 +1,472 @@
+/* ============================================================================
+   wireframe.css SOURCE — compiled by the Tailwind CLI to assets/wireframe.css.
+   Hand-edit only here, never the compiled output.
+
+   TWO ZONES, deliberately kept apart:
+   1. CHROME (header, tabs, review sidebar, popovers, dialogs, toggles) — branded,
+      shadcn/Tailwind, themeable. `.dark` flips chrome tokens ONLY.
+   2. RAW WIREFRAME (boxes, glyphs, nav, tables) — carried over near-verbatim in
+      @layer components below. Monochrome greys, NOT themed by `.dark`. This is the
+      product contract: structure + IA + flow, never color/spacing/real design.
+   ============================================================================ */
+
+@import "tailwindcss";
+
+/* Scan the React source for utility classes (dist/ and node_modules excluded). */
+@source "../src";
+@source "../dev";
+
+/* shadcn dark variant: utilities flip when an ancestor carries `.dark`. */
+@custom-variant dark (&:is(.dark *));
+
+/* ── shadcn theme tokens → brand palette (CHROME only) ── */
+:root {
+  --radius: 0.5rem;
+
+  --background: #f4f4f5;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  /* brand blue */
+  --primary: #0988c8;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  /* soft-blue accent (hover surfaces, active pills) */
+  --accent: #e6f4fb;
+  --accent-foreground: #0b5e86;
+
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #0988c8;
+
+  /* extra brand accents used by chrome */
+  --wfc-accent: #0988c8;
+  --wfc-accent-soft: #e6f4fb;
+  --wfc-accent-2: #fcc800;
+  --wfc-accent-2-ink: #0f1115;
+  /* --wfc-approve: #16a34a; */
+  --wfc-approve: #fcc800;
+  --wfc-approve-foreground: #0f1115;
+  --wfc-approve-soft: #dcfce7;
+}
+
+.dark {
+  --background: #18181b;
+  --foreground: #f4f4f5;
+  --card: #1f1f23;
+  --card-foreground: #f4f4f5;
+  --popover: #1f1f23;
+  --popover-foreground: #f4f4f5;
+
+  --primary: #2aa6e0;
+  --primary-foreground: #08222e;
+
+  --secondary: #27272a;
+  --secondary-foreground: #f4f4f5;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #0e3247;
+  --accent-foreground: #cde9f7;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #18181b;
+
+  --border: #2e2e34;
+  --input: #3a3a40;
+  --ring: #2aa6e0;
+
+  --wfc-accent: #2aa6e0;
+  --wfc-accent-soft: #0e3247;
+  /* --wfc-approve: #22c55e; */
+  --wfc-approve-soft: #0f1115;
+  --wfc-approve: #fcc800;
+  --wfc-approve-foreground: #0f1115;
+}
+
+/* Map tokens into Tailwind's color/radius theme so `bg-background`,
+   `text-muted-foreground`, `border-border`, `rounded-lg`, etc. resolve. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-wfc-accent: var(--wfc-accent);
+  --color-wfc-accent-soft: var(--wfc-accent-soft);
+  --color-wfc-accent-2: var(--wfc-accent-2);
+  --color-wfc-approve: var(--wfc-approve);
+  --color-wfc-approve-soft: var(--wfc-approve-soft);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--wf-c-sans);
+    -webkit-font-smoothing: antialiased;
+    font-size: 13px;
+    color: var(--foreground);
+    background: var(--background);
+    overflow: hidden;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RAW WIREFRAME LAYER — carried over near-verbatim, MONOCHROME, NOT dark-themed.
+   Self-contained constants below so boxes look identical in light and dark chrome.
+   ════════════════════════════════════════════════════════════════════════════ */
+@layer components {
+  :root {
+    --wf-ink: #3f3f46;
+    --wf-line: #a1a1aa;
+    --wf-fill: #f4f4f5;
+    --wf-muted: #8a8a93;
+    --wf-tag-guess: #d97706;
+    --wf-radius: 4px;
+    --wf-font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --wf-c-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --wf-c-line: #e4e4e7;
+  }
+
+  /* ── Wireframe layout primitives ── */
+  .wf-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .wf-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .wf-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(var(--cols, 3), 1fr);
+  }
+
+  /* ── The box — raw, do not design ── */
+  .wf-box {
+    position: relative;
+    font-family: var(--wf-font);
+    border: 1px dashed var(--wf-line);
+    border-radius: var(--wf-radius);
+    padding: 14px 12px;
+    min-height: 40px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--wf-ink);
+    font-size: 12.5px;
+    transition: box-shadow 0.1s ease;
+  }
+
+  .wf-box.wf-solid {
+    border-style: solid;
+  }
+
+  .wf-box.wf-shaded {
+    background: var(--wf-fill);
+  }
+
+  .wf-box.wf-placeholder {
+    color: var(--wf-muted);
+    font-style: italic;
+  }
+
+  .wf-tall {
+    min-height: 120px;
+  }
+
+  .wf-taller {
+    min-height: 200px;
+  }
+
+  /* Nested box: quieter border */
+  .wf-box .wf-box {
+    border-style: solid;
+    border-color: var(--wf-c-line);
+  }
+
+  /* Annotation marker */
+  .wf-box[data-backend],
+  .wf-box[data-ds] {
+    cursor: help;
+  }
+
+  .wf-box[data-backend]::before,
+  .wf-box[data-ds]::before {
+    content: "·";
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    color: var(--wf-line);
+    font-weight: 700;
+  }
+
+  /* Guessed mapping */
+  .wf-box[data-ds^="guess:"]::before {
+    content: "?";
+    color: var(--wf-tag-guess);
+  }
+
+  /* Commented box */
+  .wf-box[data-wf-commented] {
+    box-shadow: inset 0 0 0 2px var(--wfc-accent);
+  }
+
+  .wfc-pin {
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--wfc-accent);
+    line-height: 1;
+    z-index: 3;
+    pointer-events: none;
+    user-select: none;
+    border-radius: 3px;
+    padding: 1px 4px;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .wf-placeholder {
+    color: var(--wf-muted);
+    font-style: italic;
+  }
+
+  /* ── Table ── */
+  .wf-box.wf-table {
+    display: block;
+    padding: 0;
+    min-height: 0;
+    text-align: left;
+    overflow: visible;
+  }
+
+  .wf-tr {
+    display: grid;
+    grid-template-columns: repeat(var(--tcols, 3), 1fr);
+    border-top: 1px solid var(--wf-c-line);
+  }
+
+  .wf-tr:first-child {
+    border-top: none;
+  }
+
+  .wf-th,
+  .wf-td {
+    padding: 8px 10px;
+    min-width: 0;
+    border-left: 1px solid var(--wf-c-line);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wf-th:first-child,
+  .wf-td:first-child {
+    border-left: none;
+  }
+
+  .wf-th {
+    background: var(--wf-fill);
+    color: var(--wf-muted);
+    font-weight: 500;
+  }
+
+  .wf-td {
+    color: var(--wf-ink);
+  }
+
+  .wf-td.wf-placeholder {
+    color: var(--wf-muted);
+    font-style: italic;
+  }
+
+  /* ── Kind glyphs (type placeholders) ── */
+  .wf-box.wf-kind {
+    flex-direction: column;
+    gap: 8px;
+    min-height: 76px;
+  }
+
+  .wf-glyph {
+    display: block;
+    color: var(--wf-line);
+    line-height: 0;
+  }
+
+  .wf-glyph-svg {
+    width: 64px;
+    height: 40px;
+    display: block;
+  }
+
+  .wf-box-label {
+    color: var(--wf-ink);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  /* ── Flow affordance (always visible, even in comment mode) ── */
+  .wf-flow {
+    position: absolute;
+    bottom: 3px;
+    right: 6px;
+    font-family: var(--wf-c-sans);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--wf-muted);
+    border: 1px solid var(--wf-line);
+    border-radius: 3px;
+    padding: 0 3px;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+
+  /* In comment mode, every annotatable box signals it's clickable. */
+  .wf-app[data-mode="comment"] .wf-box[data-wf-id] {
+    cursor: pointer;
+  }
+
+  /* In click-through mode, flow-bearing boxes signal they're navigable. */
+  .wf-app[data-mode="click"] .wf-box:has(> .wf-flow) {
+    cursor: pointer;
+  }
+
+  .wf-app[data-mode="click"] .wf-box:has(> .wf-flow):hover {
+    border-color: var(--wf-ink);
+    border-style: solid;
+  }
+
+  /* Canvas shell: size containment context for child container queries */
+  .wf-canvas-shell {
+    container-type: size;
+  }
+
+  /* ── Enumerated nav (information architecture) ── */
+  .wf-ia-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 0 0 200px;
+    align-self: flex-start;
+    overflow-y: auto;
+    max-height: 100cqh;
+  }
+
+  .wf-ia-top {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .wf-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .wf-ia-top .wf-nav-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wf-nav-group-label {
+    font-family: var(--wf-c-sans);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--wf-muted);
+    padding: 2px 2px 0;
+  }
+
+  .wf-box.wf-nav-item {
+    justify-content: flex-start;
+    text-align: left;
+    border-style: solid;
+    border-color: var(--wf-line);
+    min-height: 0;
+    padding: 7px 10px;
+    gap: 8px;
+    font-family: var(--wf-c-sans);
+    font-size: 12px;
+  }
+
+  .wf-nav-item .wf-nav-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .wf-box.wf-nav-active {
+    border-color: var(--wf-ink);
+    background: var(--wf-fill);
+    font-weight: 600;
+  }
+
+  .wf-nav-badge {
+    font-family: var(--wf-c-sans);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--wf-muted);
+    border: 1px solid var(--wf-line);
+    border-radius: 999px;
+    padding: 0 6px;
+    line-height: 1.5;
+  }
+}

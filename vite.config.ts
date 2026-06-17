@@ -1,11 +1,23 @@
 import { defineConfig } from "vite";
-import solid from "vite-plugin-solid";
+import react from "@vitejs/plugin-react";
 
-// Builds the operating layer into ONE self-contained IIFE file
-// (assets/dist/wireframe-app.js) — Solid runtime inlined, no externals — so it
-// runs both from file:// (standalone) and when MCP-served.
-export default defineConfig({
-  plugins: [solid()],
+// `build` produces ONE self-contained IIFE (assets/dist/wireframe-app.js) — React
+// + ReactDOM inlined, no externals — so it runs from file:// and when MCP-served.
+// CSS is built separately by the Tailwind CLI (see package.json "build"), so Vite
+// emits JS only and never writes a competing dist/*.css.
+// `serve` (npm run dev) roots at app/ and drives the HMR dev harness
+// (app/index.html + app/dev/main.tsx) against the sample examples.
+export default defineConfig(({ command }) => ({
+  plugins: [react()],
+  // Vite library builds don't replace process.env.NODE_ENV, so React would ship
+  // its dev build (warnings + ~3x size). Pin production for the bundle; the dev
+  // server (serve) handles NODE_ENV itself.
+  ...(command === "build"
+    ? { define: { "process.env.NODE_ENV": JSON.stringify("production") } }
+    : {}),
+  ...(command === "serve"
+    ? { root: "app", server: { fs: { allow: [".."] } } }
+    : {}),
   build: {
     outDir: "assets/dist",
     emptyOutDir: false,
@@ -21,4 +33,4 @@ export default defineConfig({
       output: { inlineDynamicImports: true },
     },
   },
-});
+}));

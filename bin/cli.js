@@ -10,6 +10,7 @@ const SKILL_SRC = path.join(__dirname, "..", "SKILL.md");
 const SKILL_CONTENT = fs.readFileSync(SKILL_SRC, "utf8");
 const ASSETS_SRC = path.join(__dirname, "..", "assets");
 const PKG_NAME = "wireframe-preview";
+const PKG_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8")).version;
 
 const genericAgentSkill = {
   label: "Generic Agent Skill",
@@ -160,7 +161,32 @@ function removePlatform(name, platform) {
 }
 
 function autoDetect() {
-  return ["agents"];
+  const cwd = process.cwd();
+  const home = os.homedir();
+  const detected = [];
+
+  // Global Claude Code install (~/.claude/ exists)
+  if (fs.existsSync(path.join(home, ".claude"))) detected.push("claude");
+
+  // Project-level platform dirs
+  const projectChecks = [
+    ["claude-project", ".claude"],
+    ["cursor",         ".cursor"],
+    ["windsurf",       ".windsurf"],
+    ["kilocode",       ".kilocode"],
+    ["amp-code",       ".amp"],
+    ["agents",         ".agents"],
+  ];
+  for (const [name, dir] of projectChecks) {
+    if (fs.existsSync(path.join(cwd, dir))) detected.push(name);
+  }
+
+  if (detected.length === 0) {
+    console.log("No known agent directories detected. Falling back to generic .agents/ folder.");
+    detected.push("agents");
+  }
+
+  return detected;
 }
 
 // ── MCP server registration ─────────────────────────────────────────────────
@@ -300,6 +326,11 @@ function removeMcp(name, t) {
 
 const [, , cmd, ...args] = process.argv;
 const platformFlag = args.find((a) => !a.startsWith("--"));
+
+if (cmd === "--version" || cmd === "-v") {
+  console.log(PKG_VERSION);
+  process.exit(0);
+}
 
 if (!cmd || cmd === "help") {
   console.log(`
