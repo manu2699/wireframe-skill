@@ -43,10 +43,20 @@ function slugify(name) {
 function getFeature(slug) {
   let f = features.get(slug);
   if (!f) {
-    f = { dir: null, queue: [], waiters: [], approved: false, openComments: 0 };
+    f = { dir: null, queue: [], waiters: [], approved: false, openComments: 0, sockets: new Set() };
     features.set(slug, f);
   }
   return f;
+}
+
+// Push a message down to all open browser tabs for a feature.
+function broadcastToFeature(slug, msg) {
+  const f = features.get(slug);
+  if (!f) return;
+  const payload = JSON.stringify(msg);
+  for (const s of f.sockets) {
+    try { if (s.readyState === 1) s.send(payload); } catch (e) {}
+  }
 }
 
 // A browser pushed a block. Classify it, update status, hand to a waiter or queue.
@@ -91,6 +101,12 @@ function wsBootstrap(slug) {
       if (window.__wfOnDisconnect) window.__wfOnDisconnect();
     };
     ws.onerror = function () { try { ws.close(); } catch (e) {} };
+    ws.onmessage = function (e) {
+      try {
+        var msg = JSON.parse(e.data);
+        if (msg.type === "reload") window.location.reload();
+      } catch (ex) {}
+    };
   }
   connect();
   window.__wfSend = function (block) {
@@ -163,6 +179,11 @@ function startHttp() {
     wss = new WebSocketServer({ server: httpServer, path: "/ws" });
     wss.on("connection", (socket, req) => {
       const slug = new URL(req.url, "http://localhost").searchParams.get("feature");
+      if (slug) {
+        const f = getFeature(slug);
+        f.sockets.add(socket);
+        socket.on("close", () => f.sockets.delete(socket));
+      }
       socket.on("message", (data) => {
         let parsed;
         try { parsed = JSON.parse(data.toString()); } catch (e) { return; }
@@ -253,6 +274,22 @@ const TOOLS = [
     },
   },
   {
+    name: "wireframe_update",
+    description:
+      "Push a revised wireframe model to the already-open browser tab. " +
+      "Writes the new model JSON into wireframe.html on disk and sends a reload signal " +
+      "over WebSocket so the browser refreshes automatically — no manual refresh needed. " +
+      "Call after applying feedback from wireframe_wait_feedback to close the iteration loop.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        feature: { type: "string" },
+        model:   { type: "object", description: "The full updated #wf-model JSON object." },
+      },
+      required: ["feature", "model"],
+    },
+  },
+  {
     name: "wireframe_status",
     description: "Return { approved, openComments, url } for a feature.",
     inputSchema: {
@@ -321,6 +358,22 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const f = getFeature(slug);
     const drained = f.queue.splice(0);
     return text(drained.length ? drained.join("\n\n") : "(no pending feedback)");
+  }
+
+  if (name === "wireframe_update") {
+    const f = getFeature(slug);
+    if (!f.dir) return text(`wireframe_open must be called first for "${slug}".`, true);
+    const htmlPath = path.join(f.dir, "wireframe.html");
+    if (!fs.existsSync(htmlPath)) return text(`wireframe.html not found at ${htmlPath}.`, true);
+    let html = fs.readFileSync(htmlPath, "utf8");
+    html = html.replace(
+      /(<script[^>]+id="wf-model"[^>]*>)([\s\S]*?)(<\/script>)/,
+      `$1\n${JSON.stringify(args.model, null, 2)}\n$3`,
+    );
+    fs.writeFileSync(htmlPath, html, "utf8");
+    broadcastToFeature(slug, { type: "reload" });
+    const count = f.sockets.size;
+    return text(`Model updated. Reload signal sent to ${count} connected client(s). Browser will refresh automatically.`);
   }
 
   if (name === "wireframe_status") {

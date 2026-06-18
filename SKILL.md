@@ -222,7 +222,7 @@ If the `wireframe_*` MCP tools are available, prefer them over copy-paste:
 
 1. After writing `wireframe.html`, call **`wireframe_open`** with `{ feature: "<feature-slug>" }`. It copies the frozen assets if needed, serves `.wireframes/<slug>/` on localhost, opens the browser, returns the URL. The browser's **"Send to agent"/"Copy feedback"** and **"✓ Approve"** buttons stream their block straight to you.
 2. Tell the user to comment/approve, then call **`wireframe_wait_feedback`** with `{ feature, timeoutMs }`. It blocks until the next block arrives and returns the **exact structured text** parsed below.
-3. Apply the feedback (edit the model only), tell the user to refresh, call `wireframe_wait_feedback` again. Use `wireframe_status` for `{ approved, openComments }`. Loop until a `WIREFRAME APPROVED` block arrives, then go to step 6.
+3. Parse the feedback block (see §Consuming below). Apply changes to the JSON model only. Then call **`wireframe_update`** with `{ feature, model: <updated JSON object> }` — it writes the new model to disk and automatically reloads the already-open browser tab. No manual refresh needed. Call `wireframe_wait_feedback` again to receive the next round. Use `wireframe_status` for `{ approved, openComments }`. Loop until a `WIREFRAME APPROVED` block arrives, then go to step 6.
 
 The MCP server only changes the *transport* — it never generates, renders, or restyles. If the tools aren't present, use the clipboard flow; everything still works.
 

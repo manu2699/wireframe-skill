@@ -142,7 +142,7 @@ export function ReviewSidebar(props: {
         ) : null}
         <div className="flex gap-2">
           <Button className="flex-1" onClick={props.onFeedback}>
-            {props.connected ? "Send to agent" : "Copy feedback"}
+            Send feedback
           </Button>
           <Button variant="approve" className="flex-1" onClick={props.onApprove}>
             <Check className="h-3.5 w-3.5" /> Approve
