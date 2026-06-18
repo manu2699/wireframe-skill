@@ -1,16 +1,24 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
-    "wireframe-preview": "bin/cli.js"
+    "wireframe-preview": "bin/cli.js",
+    "wf-preview-mcp": "mcp/server.js"
   },
   "files": [
     "bin/",
+    "mcp/",
     "SKILL.md",
     "assets/"
   ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tailwindcss -i app/styles/index.css -o assets/wireframe.css --minify && vite build",
+    "prepublishOnly": "npm run build",
+    "test": "node test/smoke.mjs && node test/cli-mcp.mjs"
+  },
   "keywords": [
     "claude",
     "cursor",
@@ -23,6 +31,30 @@
     "feature-spec"
   ],
   "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-toggle-group": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@tailwindcss/cli": "^4.0.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
+  },
   "engines": {
     "node": ">=18"
   }

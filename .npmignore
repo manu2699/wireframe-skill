@@ -3,3 +3,8 @@
 .wireframes/
 *.test.js
 .npmrc
+test/
+temp.md
+app/
+vite.config.ts
+tsconfig.json
