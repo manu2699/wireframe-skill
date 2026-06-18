@@ -38,7 +38,7 @@ function fallbackCopy(text: string): void {
 // Live MCP transport. Registers the WS bootstrap hooks and notifies subscribers
 // when connection state changes.
 export function createLiveTransport(): Transport {
-  let connected = false;
+  let connected = !!(window as any).__wfConnected;
   const listeners = new Set<() => void>();
   const emit = () => listeners.forEach((l) => l());
   const set = (v: boolean) => {

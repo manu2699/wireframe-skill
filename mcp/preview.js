@@ -12,6 +12,7 @@ import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import { WebSocketServer } from "ws";
 import * as store from "./store.js";
+import { info, debug, warn, onLog, getAll } from "./log.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS_DIR = path.join(__dirname, "..", "assets");
@@ -39,39 +40,94 @@ function wsBootstrap(slug) {
 <script>
 (function () {
   var slug = ${JSON.stringify(slug)};
-  var ws, ready = false, delay = 1500;
+  var ws, ready = false, delay = 500;
   var BKEY = 'wf-bl-' + slug;
   function getLs() { try { return JSON.parse(localStorage.getItem(BKEY)||'[]'); } catch(e){ return []; } }
   function setLs(b) { try { localStorage.setItem(BKEY, JSON.stringify(b)); } catch(e){} }
+
+  var logs = window.__wfLogs = [];
+  var MAX_LOGS = 1000;
+  function logPush(src, level, mod, msg, extra) {
+    var e = { t: new Date().toISOString().slice(11,23), src: src, level: level, mod: mod, msg: msg };
+    if (extra !== undefined) e.extra = extra;
+    logs.push(e);
+    if (logs.length > MAX_LOGS) logs.shift();
+  }
+  function bLog(level, msg, extra) { logPush("browser", level, "ws", msg, extra); }
+
+  window.__wfDumpLogs = function () {
+    var txt = logs.map(function (e) {
+      var line = e.t + " " + (e.src === "server" ? "S" : "B") + " " + e.level + " [" + e.mod + "] " + e.msg;
+      if (e.extra) line += " " + JSON.stringify(e.extra);
+      return line;
+    }).join("\\n");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function(){ console.log("[wf] " + logs.length + " log entries copied to clipboard"); });
+    }
+    return txt;
+  };
+
+  window.__wfCopyModel = function () {
+    var el = document.getElementById("wf-model");
+    if (el && navigator.clipboard && navigator.clipboard.writeText) {
+      var txt = el.textContent || "";
+      navigator.clipboard.writeText(txt).then(function(){ console.log("[wf] model copied to clipboard"); });
+      return "Model copied to clipboard!";
+    }
+    return "Could not copy model (no element or no clipboard API)";
+  };
+
+  window.__wfConnected = false;
+  function setConnected(v) {
+    window.__wfConnected = v;
+    bLog("INFO", v ? "connected" : "disconnected");
+    if (window.__wfOnConnect && v) window.__wfOnConnect();
+    if (window.__wfOnDisconnect && !v) window.__wfOnDisconnect();
+  }
   function connect() {
+    bLog("INFO", "connecting", { host: location.host, slug: slug });
     try {
       ws = new WebSocket("ws://" + location.host + "/ws?feature=" + encodeURIComponent(slug));
-    } catch (e) { return; }
+    } catch (e) { bLog("ERR", "WebSocket constructor failed", { error: e.message }); return; }
     ws.onopen = function () {
       ready = true;
-      delay = 1500;
+      delay = 500;
       var bl = getLs(); localStorage.removeItem(BKEY);
+      if (bl.length) bLog("INFO", "draining backlog", { count: bl.length });
       while (bl.length) ws.send(bl.shift());
-      if (window.__wfOnConnect) window.__wfOnConnect();
+      setConnected(true);
     };
-    ws.onclose = function () {
+    ws.onclose = function (ev) {
       ready = false;
+      bLog("WARN", "ws closed", { code: ev.code, reason: ev.reason, nextRetry: delay });
+      setConnected(false);
       setTimeout(connect, delay);
       delay = Math.min(delay * 2, 30000);
-      if (window.__wfOnDisconnect) window.__wfOnDisconnect();
     };
-    ws.onerror = function () { try { ws.close(); } catch (e) {} };
+    ws.onerror = function () { bLog("ERR", "ws error"); try { ws.close(); } catch (e) {} };
     ws.onmessage = function (e) {
       try {
         var msg = JSON.parse(e.data);
-        if (msg.type === "reload") window.location.reload();
+        if (msg.type === "reload") { bLog("INFO", "reload signal"); window.location.reload(); }
+        else if (msg.type === "log") { logPush("server", msg.entry.level, msg.entry.mod, msg.entry.msg, msg.entry.extra); }
+        else if (msg.type === "log-history") {
+          for (var i = 0; i < msg.entries.length; i++) {
+            var h = msg.entries[i];
+            logPush("server", h.level, h.mod, h.msg, h.extra);
+          }
+          bLog("INFO", "server log history loaded", { count: msg.entries.length });
+        }
       } catch (ex) {}
     };
   }
   connect();
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && !ready) { delay = 500; bLog("INFO", "tab visible, reset backoff"); }
+  });
   window.__wfSend = function (block) {
     var msg = JSON.stringify({ feature: slug, block: block });
-    if (ready) ws.send(msg); else setLs([].concat(getLs(), [msg]));
+    if (ready) { ws.send(msg); bLog("INFO", "block sent", { len: block.length }); }
+    else { setLs([].concat(getLs(), [msg])); bLog("WARN", "block queued to localStorage", { len: block.length }); }
     var t = document.getElementById("__wf-sent");
     if (!t) {
       t = document.createElement("div");
@@ -111,6 +167,7 @@ function handleRequest(req, res) {
   const parts = url.pathname.split("/").filter(Boolean);
   const slug = parts[0];
   const f = slug && store.get(slug);
+  debug("http", `${req.method} ${url.pathname}`, { slug, hasModel: !!(f && f.model) });
 
   if (!f || !f.model) {
     const waiting = `<!doctype html><html><head><meta charset="utf-8"><title>Wireframe</title>
@@ -148,15 +205,29 @@ function handleWsConnection(socket, req) {
   socket.on("pong", () => { socket.isAlive = true; });
 
   const slug = new URL(req.url, "http://localhost").searchParams.get("feature");
+  info("ws", `client connected`, { slug, totalClients: wss.clients.size });
+
+  try {
+    const history = getAll();
+    if (history.length) socket.send(JSON.stringify({ type: "log-history", entries: history }));
+  } catch (_) {}
+
   if (slug) {
     const f = store.get(slug);
     f.sockets.add(socket);
-    socket.on("close", () => f.sockets.delete(socket));
+    socket.on("close", (code, reason) => {
+      f.sockets.delete(socket);
+      info("ws", `client disconnected`, { slug, code, socketsLeft: f.sockets.size });
+    });
   }
   socket.on("message", (data) => {
     let parsed;
-    try { parsed = JSON.parse(data.toString()); } catch (_) { return; }
+    try { parsed = JSON.parse(data.toString()); } catch (_) {
+      warn("ws", "unparseable message", data.toString().slice(0, 200));
+      return;
+    }
     const fslug = parsed.feature || slug;
+    debug("ws", "message received", { feature: fslug, hasBlock: typeof parsed.block === "string" });
     if (fslug && typeof parsed.block === "string") store.ingestBlock(fslug, parsed.block);
   });
 }
@@ -168,18 +239,28 @@ export function start() {
     wss = new WebSocketServer({ server: httpServer, path: "/ws" });
     wss.on("connection", handleWsConnection);
 
+    onLog((entry) => {
+      const payload = JSON.stringify({ type: "log", entry });
+      wss.clients.forEach((c) => {
+        try { if (c.readyState === 1) c.send(payload); } catch (_) {}
+      });
+    });
+
     const heartbeat = setInterval(() => {
+      let terminated = 0;
       wss.clients.forEach((ws) => {
-        if (!ws.isAlive) { ws.terminate(); return; }
+        if (!ws.isAlive) { ws.terminate(); terminated++; return; }
         ws.isAlive = false;
         ws.ping();
       });
+      if (terminated) info("ws", `heartbeat terminated ${terminated} dead client(s)`, { remaining: wss.clients.size - terminated });
     }, 25000);
     httpServer.on("close", () => clearInterval(heartbeat));
 
     const port = process.env.WF_PORT ? parseInt(process.env.WF_PORT, 10) : 0;
     httpServer.listen(port, "127.0.0.1", () => {
       baseUrl = `http://127.0.0.1:${httpServer.address().port}`;
+      info("http", `server listening on ${baseUrl}`);
       resolve();
     });
   });
