@@ -1,11 +1,11 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
     "wireframe-preview": "bin/cli.js",
-    "wireframe-mcp": "mcp/server.js"
+    "wf-preview-mcp": "mcp/server.js"
   },
   "files": [
     "bin/",

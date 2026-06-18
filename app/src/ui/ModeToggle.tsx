@@ -1,18 +1,36 @@
-// Comment vs click-through interaction-mode switch — branded segmented control.
+// Comment vs prototype interaction-mode switch — flat nav-link style.
 
 import type { Mode } from "../hooks/useNav";
-import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
+import { cn } from "../lib/utils";
+
+const MODES: { value: Mode; label: string }[] = [
+  { value: "comment", label: "Comment" },
+  { value: "prototype", label: "Prototype" },
+];
 
 export function ModeToggle(props: { mode: Mode; onMode: (m: Mode) => void }) {
   return (
-    <ToggleGroup
-      type="single"
-      value={props.mode}
-      onValueChange={(v) => v && props.onMode(v as Mode)}
+    <div
+      className="flex items-center rounded-md border border-input bg-background p-0.5"
+      role="group"
       aria-label="Interaction mode"
     >
-      <ToggleGroupItem value="comment">Comment</ToggleGroupItem>
-      <ToggleGroupItem value="click">Click-through</ToggleGroupItem>
-    </ToggleGroup>
+      {MODES.map(({ value, label }) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => props.onMode(value)}
+          aria-pressed={props.mode === value}
+          className={cn(
+            "rounded px-2.5 py-0.5 text-[12px] font-medium transition-colors cursor-pointer",
+            props.mode === value
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }

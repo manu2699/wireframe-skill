@@ -132,6 +132,7 @@ export interface WFNode {
     uploadLabel?: string;
     checked?: boolean;
   }>;
+  submitLabel?: string;        // renders a right-aligned primary submit button at the form footer
 
   // Card enrichment
   title?: string;           // bold heading inside card

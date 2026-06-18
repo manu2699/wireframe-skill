@@ -1,5 +1,5 @@
 // Global keyboard shortcuts, Figma-style: quick toggles for the review panel,
-// the comment/click-through mode, and the theme. Ignored while typing into an
+// the comment/prototype mode, and the theme. Ignored while typing into an
 // input/textarea so they never swallow real keystrokes.
 
 import { useEffect } from "react";
@@ -7,14 +7,14 @@ import { useEffect } from "react";
 export interface ShortcutHandlers {
   togglePanel: () => void;
   setComment: () => void;
-  setClick: () => void;
+  setPrototype: () => void;
   toggleTheme: () => void;
 }
 
 // Single source of truth for the bindings, reused by the on-screen cheat sheet.
 export const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: "C", label: "Comment mode" },
-  { keys: "P", label: "Click-through" },
+  { keys: "P", label: "Prototype" },
   { keys: "\\", label: "Toggle panel" },
   // { keys: "D", label: "Dark mode" },
 ];
@@ -40,7 +40,7 @@ export function useShortcuts(h: ShortcutHandlers) {
 
       switch (e.key.toLowerCase()) {
         case "c": h.setComment(); break;
-        case "p": h.setClick(); break;
+        case "p": h.setPrototype(); break;
         case "\\": h.togglePanel(); break;
         case "d": h.toggleTheme(); break;
         default: return;
@@ -49,5 +49,5 @@ export function useShortcuts(h: ShortcutHandlers) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [h.togglePanel, h.setComment, h.setClick, h.toggleTheme]);
+  }, [h.togglePanel, h.setComment, h.setPrototype, h.toggleTheme]);
 }

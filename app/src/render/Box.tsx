@@ -14,39 +14,39 @@ import { useWF, handleClick } from "./context";
 import { modClasses } from "./util";
 import { Tooltip, TooltipTrigger, TooltipContent } from "../components/ui/tooltip";
 import { Server, Component, Sparkle } from "../components/ui/icons";
-import { ButtonBox } from "./kinds/ButtonBox";
-import { HeadingBox } from "./kinds/HeadingBox";
-import { InputBox } from "./kinds/InputBox";
-import { KpiBox } from "./kinds/KpiBox";
-import { FormBox } from "./kinds/FormBox";
-import { CardBox } from "./kinds/CardBox";
-import { ListBox } from "./kinds/ListBox";
-import { TabsBox } from "./kinds/TabsBox";
-import { AvatarBox } from "./kinds/AvatarBox";
-import { SearchBox } from "./kinds/SearchBox";
-import { BreadcrumbBox } from "./kinds/BreadcrumbBox";
-import { StepperBox } from "./kinds/StepperBox";
-import { AccordionBox } from "./kinds/AccordionBox";
-import { SidebarBox } from "./kinds/SidebarBox";
-import { PaginationBox } from "./kinds/PaginationBox";
-import { TableBox } from "./kinds/TableBox";
-import { TimelineBox } from "./kinds/TimelineBox";
-import { ProgressBox } from "./kinds/ProgressBox";
-import { BadgeBox } from "./kinds/BadgeBox";
-import { RatingBox } from "./kinds/RatingBox";
-import { ToggleBox } from "./kinds/ToggleBox";
-import { SliderBox } from "./kinds/SliderBox";
-import { DatepickerBox } from "./kinds/DatepickerBox";
-import { UploadBox } from "./kinds/UploadBox";
-import { RadioGroupBox } from "./kinds/RadioGroupBox";
-import { CheckboxGroupBox } from "./kinds/CheckboxGroupBox";
-import { AlertBox } from "./kinds/AlertBox";
-import { ModalBox } from "./kinds/ModalBox";
-import { NotificationListBox } from "./kinds/NotificationListBox";
-import { ChatWindowBox } from "./kinds/ChatWindowBox";
-import { BarChartBox } from "./kinds/BarChartBox";
-import { DonutChartBox } from "./kinds/DonutChartBox";
-import { LineChartBox } from "./kinds/LineChartBox";
+import { ButtonBox } from "./kinds/content/ButtonBox";
+import { HeadingBox } from "./kinds/content/HeadingBox";
+import { BadgeBox } from "./kinds/content/BadgeBox";
+import { AlertBox } from "./kinds/content/AlertBox";
+import { AvatarBox } from "./kinds/content/AvatarBox";
+import { InputBox } from "./kinds/inputs/InputBox";
+import { SliderBox } from "./kinds/inputs/SliderBox";
+import { DatepickerBox } from "./kinds/inputs/DatepickerBox";
+import { RadioGroupBox } from "./kinds/inputs/RadioGroupBox";
+import { CheckboxGroupBox } from "./kinds/inputs/CheckboxGroupBox";
+import { ToggleBox } from "./kinds/inputs/ToggleBox";
+import { SearchBox } from "./kinds/inputs/SearchBox";
+import { UploadBox } from "./kinds/inputs/UploadBox";
+import { RatingBox } from "./kinds/inputs/RatingBox";
+import { FormBox } from "./kinds/layout/FormBox";
+import { CardBox } from "./kinds/layout/CardBox";
+import { AccordionBox } from "./kinds/layout/AccordionBox";
+import { ModalBox } from "./kinds/layout/ModalBox";
+import { SidebarBox } from "./kinds/layout/SidebarBox";
+import { TabsBox } from "./kinds/nav/TabsBox";
+import { BreadcrumbBox } from "./kinds/nav/BreadcrumbBox";
+import { StepperBox } from "./kinds/nav/StepperBox";
+import { PaginationBox } from "./kinds/nav/PaginationBox";
+import { BarChartBox } from "./kinds/charts/BarChartBox";
+import { LineChartBox } from "./kinds/charts/LineChartBox";
+import { DonutChartBox } from "./kinds/charts/DonutChartBox";
+import { KpiBox } from "./kinds/charts/KpiBox";
+import { TableBox } from "./kinds/display/TableBox";
+import { ListBox } from "./kinds/display/ListBox";
+import { TimelineBox } from "./kinds/display/TimelineBox";
+import { NotificationListBox } from "./kinds/display/NotificationListBox";
+import { ChatWindowBox } from "./kinds/display/ChatWindowBox";
+import { ProgressBox } from "./kinds/display/ProgressBox";
 import { Node } from "./Node";
 
 type BoxNode = WFNode & { _id?: string };
@@ -58,10 +58,10 @@ const KIND_RENDERERS: Record<string, (props: { node: BoxNode }) => ReactNode | n
   button: (props) => <ButtonBox node={props.node} />,
   heading: (props) => <HeadingBox node={props.node} />,
   input: (props) => <InputBox node={props.node} />,
-  kpi: (props) => (props.node.value !== undefined ? <KpiBox node={props.node} /> : null),
-  stat: (props) => (props.node.value !== undefined ? <KpiBox node={props.node} /> : null),
-  form: (props) => (props.node.fields && props.node.fields.length > 0 ? <FormBox node={props.node} /> : null),
-  card: (props) => (props.node.title !== undefined ? <CardBox node={props.node} /> : null),
+  kpi: (props) => <KpiBox node={props.node} />,
+  stat: (props) => <KpiBox node={props.node} />,
+  form: (props) => <FormBox node={props.node} />,
+  card: (props) => <CardBox node={props.node} />,
   list: (props) => (props.node.items && props.node.items.length > 0 ? <ListBox node={props.node} /> : null),
   tabs: (props) => (props.node.tabs && props.node.tabs.length > 0 ? <TabsBox node={props.node} /> : null),
   avatar: (props) => (props.node.initials !== undefined ? <AvatarBox node={props.node} /> : null),
@@ -120,7 +120,7 @@ export function Box(props: { node: BoxNode }) {
         <FlowTag goto={n.goto} opens={n.opens} action={n.action} />
       </div>
     );
-    return withAnnotation(box, n.backend, n.ds);
+    return withAnnotation(box, n);
   }
 
   // 4 & 5. Fallback / default behavior
@@ -142,21 +142,24 @@ export function Box(props: { node: BoxNode }) {
       <FlowTag goto={n.goto} opens={n.opens} action={n.action} />
     </div>
   );
-  return withAnnotation(box, n.backend, n.ds);
+  return withAnnotation(box, n);
 }
 
 // Shared by Box / Table / Nav: wrap a trigger in an annotation tooltip when it
 // has backend/ds metadata, otherwise return it untouched. The tooltip spells out
 // what each annotation means (endpoint vs. design-system component) rather than
 // cryptic BE/DS prefixes, and flags any "guess:" value as inferred.
-export function withAnnotation(trigger: ReactNode, backend?: string, ds?: string): ReactNode {
-  if (!backend && !ds) return <>{trigger}</>;
+export function withAnnotation(trigger: ReactNode, n: { backend?: string; ds?: string; goto?: string; opens?: string; action?: string }): ReactNode {
+  if (!n.backend && !n.ds && !n.goto && !n.opens && !n.action) return <>{trigger}</>;
   return (
     <Tooltip>
       <TooltipTrigger asChild>{trigger}</TooltipTrigger>
       <TooltipContent className="flex w-max max-w-[260px] flex-col gap-2 px-3 py-2.5">
-        {backend && <AnnotationRow icon={<Server className="h-3.5 w-3.5" />} label="Endpoint" value={backend} mono />}
-        {ds && <AnnotationRow icon={<Component className="h-3.5 w-3.5" />} label="Design system" value={ds} />}
+        {n.backend && <AnnotationRow icon={<Server className="h-3.5 w-3.5" />} label="Endpoint" value={n.backend} mono />}
+        {n.ds && <AnnotationRow icon={<Component className="h-3.5 w-3.5" />} label="Design system" value={n.ds} />}
+        {n.goto && <AnnotationRow icon={<span className="text-[12px] font-bold">→</span>} label="Navigates to" value={n.goto} />}
+        {n.opens && <AnnotationRow icon={<span className="text-[12px] font-bold">⊕</span>} label="Opens modal" value={n.opens} />}
+        {n.action && <AnnotationRow icon={<span className="text-[12px] font-bold">↵</span>} label="Performs" value={n.action} />}
       </TooltipContent>
     </Tooltip>
   );

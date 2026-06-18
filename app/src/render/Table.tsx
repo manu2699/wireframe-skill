@@ -33,5 +33,5 @@ export function Table(props: { node: WFNode & { _id?: string } }) {
       ))}
     </div>
   );
-  return withAnnotation(table, n.backend, n.ds);
+  return withAnnotation(table, n);
 }

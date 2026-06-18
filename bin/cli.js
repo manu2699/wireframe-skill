@@ -72,8 +72,19 @@ const PLATFORMS = {
     label: "Codex (OpenAI)",
   },
   antigravity: {
-    ...genericAgentSkill,
     label: "Antigravity",
+    type: "copy",
+    dest: () =>
+      path.join(
+        process.cwd(),
+        ".agents",
+        "plugins",
+        PKG_NAME,
+        "skills",
+        PKG_NAME,
+        "SKILL.md",
+      ),
+    pluginManifest: { name: PKG_NAME },
   },
   copilot: {
     ...genericAgentSkill,
@@ -104,6 +115,19 @@ function writePlatform(name, platform) {
     fs.writeFileSync(dest, SKILL_CONTENT, "utf8");
     console.log(`✓ ${platform.label} → ${dest}`);
     copyAssets(dest);
+    if (platform.pluginManifest) {
+      const manifestPath = path.join(
+        process.cwd(),
+        ".agents",
+        "plugins",
+        PKG_NAME,
+        "plugin.json",
+      );
+      if (!fs.existsSync(manifestPath)) {
+        fs.writeFileSync(manifestPath, JSON.stringify(platform.pluginManifest, null, 2) + "\n", "utf8");
+        console.log(`  ↳ plugin.json → ${manifestPath}`);
+      }
+    }
     return;
   }
 
@@ -196,7 +220,7 @@ function autoDetect() {
 // differ. Strategy: auto-merge JSON where safe, print a snippet otherwise.
 
 const MCP_NAME = PKG_NAME; // "wireframe-preview"
-const MCP_SERVER = { command: "npx", args: ["-y", "wireframe-mcp"] };
+const MCP_SERVER = { command: "npx", args: ["-y", "--package=wireframe-preview", "wf-preview-mcp"] };
 
 const MCP_TARGETS = {
   "claude-project": {
@@ -233,6 +257,13 @@ const MCP_TARGETS = {
     label: "Cline",
     format: "print", // path lives deep in VS Code globalStorage, varies by OS/editor
     file: () => "<VS Code globalStorage>/.../cline_mcp_settings.json",
+  },
+  antigravity: {
+    label: "Antigravity",
+    format: "json",
+    key: "mcpServers",
+    file: () =>
+      path.join(process.cwd(), ".agents", "plugins", PKG_NAME, "mcp_config.json"),
   },
 };
 
@@ -379,7 +410,10 @@ if (cmd === "install") {
     console.log(`Auto-detected: ${targets.join(", ")}\n`);
   }
 
-  for (const t of targets) writePlatform(t, PLATFORMS[t]);
+  for (const t of targets) {
+    writePlatform(t, PLATFORMS[t]);
+    if (MCP_TARGETS[t]) registerMcp(t, MCP_TARGETS[t]);
+  }
   console.log("\nDone. Restart your agent to pick up the skill.");
   process.exit(0);
 }

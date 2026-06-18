@@ -5,7 +5,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 export interface WFActions {
-  mode: () => "comment" | "click";
+  mode: () => "comment" | "prototype";
   comment: (id: string, el: HTMLElement) => void;
   goto: (screenId: string) => void;
   openModal: (modalId: string) => void;
@@ -29,10 +29,10 @@ export function handleClick(
   e: React.MouseEvent,
 ) {
   e.stopPropagation();
-  if (wf.mode() === "click") {
+  if (wf.mode() === "prototype") {
     if (goto) return wf.goto(goto);
     if (opens) return wf.openModal(opens);
-    // non-actionable in click mode: ignore
+    // non-actionable in prototype mode: ignore
     return;
   }
   // comment mode: any commentable element opens a comment. Pass the element

@@ -58,8 +58,8 @@ export function App(props: {
 
   const togglePanel = useCallback(() => setReviewCollapsed((c) => !c), []);
   const setComment = useCallback(() => setMode("comment"), [setMode]);
-  const setClick = useCallback(() => setMode("click"), [setMode]);
-  useShortcuts({ togglePanel, setComment, setClick, toggleTheme });
+  const setPrototype = useCallback(() => setMode("prototype"), [setMode]);
+  useShortcuts({ togglePanel, setComment, setPrototype, toggleTheme });
 
   const connected = useSyncExternalStore(transport.subscribe, transport.isConnected);
 

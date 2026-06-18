@@ -30,7 +30,7 @@ export function Nav(props: { node: WFNode }) {
                 <FlowTag goto={it.goto} opens={it.opens} />
               </div>
             );
-            return <span key={ii} className="contents">{withAnnotation(item, it.backend, it.ds)}</span>;
+            return <span key={ii} className="contents">{withAnnotation(item, it)}</span>;
           })}
         </div>
       ))}

@@ -26,14 +26,14 @@ export function ReviewSidebar(props: {
 
   if (props.collapsed) {
     return (
-      <aside className="flex w-11 flex-shrink-0 flex-col items-center gap-3 border-l border-border bg-card py-3">
-        <Button variant="ghost" size="icon" onClick={props.onToggleCollapse} aria-label="Expand review panel" title="Expand panel  (\)">
-          <PanelRightOpen className="h-4 w-4" />
+      <aside className="flex w-10 flex-shrink-0 flex-col items-center gap-4 border-l border-border bg-card py-3">
+        <Button variant="ghost" size="icon" onClick={props.onToggleCollapse} aria-label="Expand review panel" title="Expand panel  (\)" className="h-7 w-7">
+          <PanelRightOpen className="h-3.5 w-3.5" />
         </Button>
         <div className="relative text-muted-foreground">
-          <MessageSquare className="h-4 w-4" />
+          <MessageSquare className="h-3.5 w-3.5" />
           {ids.length > 0 && (
-            <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-wfc-accent px-1 text-[9px] font-bold text-white">
+            <span className="absolute -right-2 -top-2 inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-wfc-accent px-0.5 text-[8.5px] font-bold text-white">
               {ids.length}
             </span>
           )}
@@ -43,12 +43,12 @@ export function ReviewSidebar(props: {
   }
 
   return (
-    <aside className="flex w-[284px] flex-shrink-0 flex-col overflow-hidden border-l border-border bg-card">
+    <aside className="flex w-[272px] flex-shrink-0 flex-col overflow-hidden border-l border-border bg-card">
       {/* Header: title + collapse control, anchored at the top */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 py-2.5">
-        <span className="text-[12px] font-semibold text-foreground">Review</span>
-        <Button variant="ghost" size="icon" onClick={props.onToggleCollapse} aria-label="Collapse review panel" title="Collapse panel  (\)">
-          <PanelRightClose className="h-4 w-4" />
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 py-2">
+        <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">Review</span>
+        <Button variant="ghost" size="icon" onClick={props.onToggleCollapse} aria-label="Collapse review panel" title="Collapse panel  (\)" className="h-7 w-7">
+          <PanelRightClose className="h-3.5 w-3.5" />
         </Button>
       </div>
 
@@ -78,7 +78,7 @@ export function ReviewSidebar(props: {
       <div className="min-h-0 flex-1 overflow-auto">
         {ids.length === 0 ? (
           <p className="m-0 p-4 text-[11.5px] leading-relaxed text-muted-foreground">
-            Click any box to add a comment. Switch to <strong>Click-through</strong> mode (top right)
+            Click any box to add a comment. Switch to <strong>Prototype</strong> mode (top right)
             to walk the flow.
           </p>
         ) : (

@@ -83,7 +83,7 @@ The **only thing you author** is the `#wf-model` JSON. Its shape:
   "screens": [
     {
       "id": "s_overview", "name": "Overview",
-      "role": "list",                           // I: IA role badge on tab (optional)
+      "role": "list",                           // I: IA role badge on tab. Values: list | detail | form | dashboard | empty | error | auth | settings
       "nodes": [ /* node tree */ ]              // D: single-state shorthand — omit "states" wrapper
     },
     {
@@ -145,7 +145,7 @@ The renderer expands these shorthands automatically:
 | type    | purpose                                   | key fields                                  |
 |---------|-------------------------------------------|---------------------------------------------|
 | `box`   | the atom (a labeled region)               | `label`, `kind`, `mods`, `backend`, `ds`, flow, `new`, `changed` |
-| `row`   | horizontal flex row — shorthand: `{"row":[...]}` | `children`                         |
+| `row`   | horizontal flex row — items vertically centered by default; use `mods:["between"]` for title + action header rows | `children` |
 | `col`   | vertical stack — shorthand: `{"col":[...]}`      | `children`                         |
 | `grid`  | N-column grid (cards/tiles)               | `cols`, `children`                          |
 | `table` | a table                                   | `headers[]`, `rows[][]`, `backend`, `ds`    |
@@ -165,9 +165,47 @@ The renderer expands these shorthands automatically:
 ]}
 ```
 
-**`kind` — monochrome type glyphs** (a recognizable grey shape, never a real component or real data). One of: `kpi`, `stat`, `chart:donut`, `chart:line`, `chart:bars`, `card`, `table`, `list`, `form`, `button`, `tabs`, `avatar`, `image`. Omit `kind` for a plain labeled box.
+**`kind` — monochrome type glyphs** (a recognizable grey shape, never a real component or real data). Omit `kind` for a plain labeled box. Full vocabulary:
 
-**`mods`** — sizing/emphasis only: `["tall"]`, `["taller"]`, `["placeholder"]` (muted empty/error text), `["solid"]`, `["shaded"]`.
+| group | kinds |
+|---|---|
+| Metrics | `kpi`, `stat` |
+| Charts | `chart:donut`, `chart:line`, `chart:bars` |
+| Content | `card`, `list`, `table`, `timeline`, `notification-list`, `chat-window` |
+| Forms & inputs | `form`, `input`, `button`, `toggle`, `slider`, `datepicker`, `upload`, `radio-group`, `checkbox-group`, `search` |
+| Navigation | `tabs`, `breadcrumb`, `stepper`, `accordion`, `sidebar`, `pagination` |
+| Display | `heading`, `avatar`, `image`, `badge`, `rating`, `progress`, `alert`, `modal` |
+
+**Enrichment fields — structural shape hints, not real data.** Some kinds render a richer shape when given structured sub-fields. All values max 5 words, generic text — they control the *shape* (field count, step count, tab labels), not content. Omit any field you don't need; the renderer falls back gracefully.
+
+| kind(s) | enrichment fields | minimal example |
+|---|---|---|
+| `kpi`, `stat` | `value` (display string), `subtitle`, `trend:"up"\|"down"` | `"value":"—", "subtitle":"Total stock"` |
+| `form` | `fields[]` — each `{label, type:"text"\|"select"\|"textarea"\|"toggle"\|"datepicker"\|"upload", cols?:1\|2}`; `submitLabel` — renders a right-aligned primary button at the bottom of the form (e.g. `"submitLabel":"Submit Registration"`) | `"fields":[{"label":"Name","type":"text"}], "submitLabel":"Save"` |
+| `card` | `title` (bold heading), `meta[]` (small info row), `badges[]` (chip labels), `stats[]` (footer row) | `"title":"Lot A-001", "badges":["Released"]` |
+| `list` | `items[]` — bullet strings | `"items":["Item one","Item two"]` |
+| `tabs` | `tabs[]` — tab label strings, `activeTab` (0-based index) | `"tabs":["Details","History"], "activeTab":0` |
+| `avatar` | `initials` — 1–2 char string | `"initials":"AK"` |
+| `breadcrumb` | `crumbs[]` — path segment strings | `"crumbs":["Home","Orders","Detail"]` |
+| `stepper` | `steps[]` — step label strings, `activeStep` (0-based) | `"steps":["Upload","Review","Submit"], "activeStep":1` |
+| `accordion` | `sections[]` — each `{title, expanded?:true}` | `"sections":[{"title":"Details"},{"title":"History","expanded":true}]` |
+| `sidebar` | `sidebarGroups[]` — each `{label?, items:[string]}` | `"sidebarGroups":[{"label":"Nav","items":["Home","Settings"]}]` |
+| `pagination` | `pages` (total), `current` (1-based) | `"pages":5, "current":1` |
+| `timeline` | `events[]` — each `{label, meta?}` | `"events":[{"label":"Created","meta":"Jun 18"},{"label":"Released"}]` |
+| `progress` | `percent` (0–100) | `"percent":65` |
+| `alert` | `text`, `alertType:"info"\|"warning"\|"error"\|"success"` | `"text":"Lot in quarantine", "alertType":"warning"` |
+| `badge` | `text`, `variant:"default"\|"success"\|"warning"\|"error"` | `"text":"Released", "variant":"success"` |
+| `rating` | `rating` (number), `max` | `"rating":4, "max":5` |
+| `toggle` | `checked:true\|false`, `toggleLabel` | `"checked":false, "toggleLabel":"Enabled"` |
+| `slider` | `min`, `max`, `sliderValue` | `"min":0, "max":100, "sliderValue":40` |
+| `datepicker` | `dateValue` (display string) | `"dateValue":"2026-06-18"` |
+| `upload` | `uploadLabel` | `"uploadLabel":"Upload CSV..."` |
+| `radio-group`, `checkbox-group` | `options[]` — option label strings, `selected` (radio index), `checkedItems[]` (checkbox indices) | `"options":["Option A","Option B"], "selected":0` |
+| `notification-list` | `notifications[]` — each `{text, meta?, unread?:true}` | `"notifications":[{"text":"Lot released","unread":true}]` |
+| `chat-window` | `messages[]` — each `{from, text, sent?:true}` | `"messages":[{"from":"User","text":"Ready?","sent":true}]` |
+| `chart:bars`, `chart:line`, `chart:donut` | `chartData[]` — each `{label, value, target?}` | `"chartData":[{"label":"Jan","value":40},{"label":"Feb","value":65}]` |
+
+**`mods`** — sizing/emphasis/alignment. Combine as needed: `["tall"]`, `["taller"]`, `["placeholder"]` (muted empty/error text), `["solid"]`, `["shaded"]`, `["compact"]`, `["loose"]`, `["narrow"]`, `["center"]`, `["end"]`, `["between"]`, `["middle"]`.
 
 **Flow — make the prototype clickable** (the reviewer walks the IA):
 - `goto:"<screenId>"` — clicking switches to that screen.
@@ -208,23 +246,25 @@ The `ds` mapping is only useful if it uses the names the user's team uses. Don't
 
 ### 5. Open the preview, then iterate on the model
 
-After writing, give the user the path to `wireframe.html` and offer to open it. Mention they can **click any box to comment** (Comment mode), **toggle Click-through mode (top right) to walk the flow**, then hit **"Copy feedback"** to paste a block back, or **"✓ Approve"** to sign off (step 6). To open directly:
+After writing `wireframe.html`, **immediately attempt `wireframe_open`** (see Live loop below). Only if that tool is unavailable, fall back to giving the user the path and opening manually:
 
 - macOS: `open .wireframes/<feature-slug>/wireframe.html`
 - Linux: `xdg-open .wireframes/<feature-slug>/wireframe.html`
 - Windows: `start .wireframes/<feature-slug>/wireframe.html`
 
+In the clipboard fallback, tell the user they can **click any box to comment**, **toggle Click-through mode** to walk flows, then **"Copy feedback"** to paste back, or **"✓ Approve"** to sign off.
+
 Treat the model as a living file. Follow-up requests ("make Reason a Select", "drop the empty state", "add a loading state", "Submit should open a confirm modal") are **edits to the `#wf-model` JSON only** — change the node's fields, add a state, add a `modals[]` entry + `opens`, and tell the user to refresh. Never edit `wireframe.css` or `wireframe-app.js`.
 
 #### Live loop via the wireframe MCP server (no paste)
 
-If the `wireframe_*` MCP tools are available, prefer them over copy-paste:
+**Always attempt the MCP path first.** After writing `wireframe.html`, call `wireframe_open` immediately — if the tool call fails or returns a tool-not-found error, fall back to the clipboard path below. Do not skip the attempt.
 
-1. After writing `wireframe.html`, call **`wireframe_open`** with `{ feature: "<feature-slug>" }`. It copies the frozen assets if needed, serves `.wireframes/<slug>/` on localhost, opens the browser, returns the URL. The browser's **"Send to agent"/"Copy feedback"** and **"✓ Approve"** buttons stream their block straight to you.
+1. Call **`wireframe_open`** with `{ feature: "<feature-slug>" }`. It copies the frozen assets if needed, serves `.wireframes/<slug>/` on localhost, opens the browser, returns the URL. The browser's **"Send to agent"/"Copy feedback"** and **"✓ Approve"** buttons stream their block straight to you.
 2. Tell the user to comment/approve, then call **`wireframe_wait_feedback`** with `{ feature, timeoutMs }`. It blocks until the next block arrives and returns the **exact structured text** parsed below.
 3. Parse the feedback block (see §Consuming below). Apply changes to the JSON model only. Then call **`wireframe_update`** with `{ feature, model: <updated JSON object> }` — it writes the new model to disk and automatically reloads the already-open browser tab. No manual refresh needed. Call `wireframe_wait_feedback` again to receive the next round. Use `wireframe_status` for `{ approved, openComments }`. Loop until a `WIREFRAME APPROVED` block arrives, then go to step 6.
 
-The MCP server only changes the *transport* — it never generates, renders, or restyles. If the tools aren't present, use the clipboard flow; everything still works.
+The MCP server only changes the *transport* — it never generates, renders, or restyles. Only use the clipboard flow if `wireframe_open` is unavailable.
 
 #### Consuming a feedback block
 

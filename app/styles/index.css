@@ -52,7 +52,7 @@
 
   /* extra brand accents used by chrome */
   --wfc-accent: #0988c8;
-  --wfc-accent-soft: #e6f4fb;
+  --wfc-accent-soft: #fbfeff;
   --wfc-accent-2: #fcc800;
   --wfc-accent-2-ink: #0f1115;
   /* --wfc-approve: #16a34a; */
@@ -173,7 +173,7 @@
   .wf-row {
     display: flex;
     gap: 12px;
-    align-items: stretch;
+    align-items: center;
   }
 
   .wf-col {
@@ -272,10 +272,12 @@
     user-select: none;
     z-index: 4;
   }
+
   .wf-new-badge {
     background: var(--wf-ink);
     color: #fff;
   }
+
   .wf-changed-badge {
     background: transparent;
     color: var(--wf-ink);
@@ -311,6 +313,7 @@
     font-size: 11px;
     flex-shrink: 0;
   }
+
   .wf-flowmap-label {
     font-size: 9.5px;
     font-weight: 700;
@@ -320,16 +323,19 @@
     padding-top: 2px;
     flex-shrink: 0;
   }
+
   .wf-flowmap-rows {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 20px;
   }
+
   .wf-flowmap-row {
     display: flex;
     align-items: center;
     gap: 5px;
   }
+
   .wf-flowmap-node {
     background: none;
     border: 1px solid var(--border);
@@ -340,12 +346,15 @@
     color: var(--foreground);
     cursor: pointer;
   }
+
   .wf-flowmap-node:hover {
     background: var(--accent);
   }
+
   .wf-flowmap-arrow {
     color: var(--muted-foreground);
   }
+
   .wf-flowmap-via {
     color: var(--muted-foreground);
     font-style: italic;
@@ -482,25 +491,28 @@
     line-height: 1.3;
   }
 
-  /* ── Flow affordance (always visible, even in comment mode) ── */
+  /* ── Flow affordance (overlay for tooltip) ── */
   .wf-flow {
     position: absolute;
-    bottom: 3px;
-    right: 6px;
-    font-family: var(--wf-c-sans);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--wf-muted);
-    border: 1px solid var(--wf-line);
-    border-radius: 3px;
-    padding: 0 3px;
-    line-height: 1.4;
-    pointer-events: none;
+    inset: 0;
+    z-index: 10;
+    cursor: pointer;
   }
 
-  /* In comment mode, every annotatable box signals it's clickable. */
+  .wf-box:has(> .wf-flow) {
+    background: var(--wfc-accent-soft);
+    border: 1px dashed var(--wfc-accent) !important;
+  }
+
+  /* In comment mode, every annotatable box signals it's clickable + shows hover feedback. */
   .wf-app[data-mode="comment"] .wf-box[data-wf-id] {
     cursor: pointer;
+  }
+
+  .wf-app[data-mode="comment"] .wf-box[data-wf-id]:hover {
+    border-style: solid;
+    border-color: var(--wf-c-line);
+    background: var(--wf-fill);
   }
 
   /* In click-through mode, flow-bearing boxes signal they're navigable. */
@@ -509,13 +521,36 @@
   }
 
   .wf-app[data-mode="click"] .wf-box:has(> .wf-flow):hover {
-    border-color: var(--wf-ink);
-    border-style: solid;
+    border-color: var(--wfc-accent);
+    background: var(--wfc-accent);
+    color: var(--wfc-accent-foreground);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
   }
 
   /* Canvas shell: size containment context for child container queries */
   .wf-canvas-shell {
     container-type: size;
+  }
+
+  /* Hide scrollbar on screen tab strip */
+  .wf-screen-tabs {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .wf-screen-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Dot-grid texture for the canvas background */
+  .wf-canvas-dotgrid {
+    background-color: var(--background);
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--border) 90%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
   }
 
   /* ── Enumerated nav (information architecture) ── */
@@ -843,6 +878,12 @@
   .wf-select-arrow {
     font-size: 10px;
     color: var(--wf-muted);
+  }
+
+  .wf-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
   }
 
   .wf-field-toggle-container {
@@ -1615,7 +1656,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 24px;
+    min-height: 18px;
     padding: 2px 10px;
     border-radius: 999px;
     font-family: var(--wf-c-sans);

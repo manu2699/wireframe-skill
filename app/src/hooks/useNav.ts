@@ -1,10 +1,10 @@
 // Navigation state: which screen is active, the active state per screen, the
-// open modal (if any), and the interaction mode (comment vs click-through).
+// open modal (if any), and the interaction mode (comment vs prototype).
 
 import { useCallback, useMemo, useReducer } from "react";
 import type { WFModel } from "../types";
 
-export type Mode = "comment" | "click";
+export type Mode = "comment" | "prototype";
 
 interface NavState {
   screenId: string;
@@ -46,7 +46,7 @@ export function useNav(model: WFModel) {
       screenId: model.screens[0]?.id,
       stateByScreen,
       modalId: null,
-      mode: "comment",
+      mode: "prototype",
     };
   }, [model]);
 
