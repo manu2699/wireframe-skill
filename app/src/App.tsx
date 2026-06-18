@@ -3,7 +3,7 @@
 // (model, id metadata, storage, transport) are injected — the entry points
 // (src/main.tsx for prod, app/dev/main.tsx for dev) construct the concrete ones.
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { WFModel } from "./types";
 import type { IdMeta } from "./model/stamp";
 import type { Storage } from "./ports/storage";
@@ -12,6 +12,7 @@ import { useNav } from "./hooks/useNav";
 import { useComments } from "./hooks/useComments";
 import { useReview } from "./hooks/useReview";
 import { useTheme } from "./hooks/useTheme";
+import { useShortcuts } from "./hooks/useShortcuts";
 import type { WFActions } from "./render/Node";
 import { Header } from "./ui/Header";
 import { Canvas } from "./ui/Canvas";
@@ -19,6 +20,16 @@ import { ReviewSidebar } from "./ui/ReviewSidebar";
 import { Modal } from "./ui/Modal";
 import { CommentPopover } from "./ui/CommentPopover";
 import { TooltipProvider } from "./components/ui/tooltip";
+
+const REVIEW_COLLAPSE_KEY = "wfc:review-collapsed";
+
+function readReviewCollapsed(): boolean {
+  try {
+    return localStorage.getItem(REVIEW_COLLAPSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export function App(props: {
   model: WFModel;
@@ -33,6 +44,20 @@ export function App(props: {
   const { comments, order, upsert, remove } = useComments(storage);
   const review = useReview({ model, metaOf, comments, order, upsert, remove, transport });
   const { theme, toggle: toggleTheme } = useTheme();
+
+  const [reviewCollapsed, setReviewCollapsed] = useState(readReviewCollapsed);
+  useEffect(() => {
+    try {
+      localStorage.setItem(REVIEW_COLLAPSE_KEY, reviewCollapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [reviewCollapsed]);
+
+  const togglePanel = useCallback(() => setReviewCollapsed((c) => !c), []);
+  const setComment = useCallback(() => setMode("comment"), [setMode]);
+  const setClick = useCallback(() => setMode("click"), [setMode]);
+  useShortcuts({ togglePanel, setComment, setClick, toggleTheme });
 
   const connected = useSyncExternalStore(transport.subscribe, transport.isConnected);
 
@@ -79,6 +104,7 @@ export function App(props: {
             model={model} comments={comments} order={order}
             connected={connected} sent={review.sent}
             onFeedback={review.onFeedback} onApprove={review.onApprove} onDelete={remove}
+            collapsed={reviewCollapsed} onToggleCollapse={togglePanel}
           />
         </div>
 

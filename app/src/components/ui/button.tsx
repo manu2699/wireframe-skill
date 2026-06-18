@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:brightness-95",
-        approve: "bg-wfc-approve text-approve-ink hover:brightness-95",
+        approve: "bg-wfc-approve text-wfc-approve-foreground hover:brightness-95",
         outline: "border border-input bg-card text-foreground hover:bg-accent hover:text-accent-foreground",
         ghost: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
         destructive: "text-destructive hover:bg-destructive/10",

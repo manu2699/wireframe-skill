@@ -3,9 +3,8 @@
 // authoring inputs only and are never published with the package.
 
 import type { WFModel } from "../src/types";
-import recyclerOverview from "./recycler-overview";
-import formFlow from "./form-flow";
-import emptyAndError from "./empty-and-error";
+import allRenderers from "./all-renderers";
+import newsFeed from "./news-feed";
 
 export interface ExampleEntry {
   slug: string;
@@ -14,9 +13,8 @@ export interface ExampleEntry {
 }
 
 export const exampleList: ExampleEntry[] = [
-  { slug: "recycler-overview", name: "Recycler Overview", model: recyclerOverview },
-  { slug: "form-flow", name: "Onboarding Wizard", model: formFlow },
-  { slug: "empty-and-error", name: "Orders — States", model: emptyAndError },
+  { slug: "all-renderers", name: "All Renderers", model: allRenderers },
+  { slug: "news-feed", name: "News Feed", model: newsFeed }
 ];
 
 export const examples: Record<string, WFModel> = Object.fromEntries(

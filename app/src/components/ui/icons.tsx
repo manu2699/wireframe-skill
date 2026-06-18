@@ -65,3 +65,34 @@ export const PanelRightOpen = (p: IconProps) => (
 export const MessageSquare = (p: IconProps) => (
   <Icon {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Icon>
 );
+
+export const Server = (p: IconProps) => (
+  <Icon {...p}>
+    <rect width="20" height="8" x="2" y="2" rx="2" /><rect width="20" height="8" x="2" y="14" rx="2" />
+    <path d="M6 6h.01" /><path d="M6 18h.01" />
+  </Icon>
+);
+
+export const Component = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M15.5 7.5 19 4l1.5 1.5L17 9z" /><path d="m12 12 3.5-3.5" />
+    <rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" />
+    <rect width="7" height="7" x="3" y="14" rx="1" />
+  </Icon>
+);
+
+export const Sparkle = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3v4" /><path d="M12 17v4" /><path d="M3 12h4" /><path d="M17 12h4" />
+    <path d="m6.3 6.3 2.4 2.4" /><path d="m15.3 15.3 2.4 2.4" />
+    <path d="m17.7 6.3-2.4 2.4" /><path d="m8.7 15.3-2.4 2.4" />
+  </Icon>
+);
+
+export const Keyboard = (p: IconProps) => (
+  <Icon {...p}>
+    <rect width="20" height="14" x="2" y="5" rx="2" />
+    <path d="M6 9h.01" /><path d="M10 9h.01" /><path d="M14 9h.01" /><path d="M18 9h.01" />
+    <path d="M7 13h10" />
+  </Icon>
+);

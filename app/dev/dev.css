@@ -1,8 +1,26 @@
 /* Dev-only chrome for the example switcher. Not part of the shipped wireframe. */
 
+/* The dev root is a full-viewport flex column: the switcher bar is fixed-height
+   and the stage takes the rest. The App uses `h-screen` (100vh) for production
+   where it mounts straight into #wf-root; under the dev bar that would overflow,
+   so we constrain it to the stage height here. */
+#wf-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.wfdev-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.wfdev-stage > .wf-app {
+  height: 100%;
+}
+
 .wfdev-bar {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 1000;
   display: flex;
   align-items: center;

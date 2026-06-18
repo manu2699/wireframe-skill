@@ -6,7 +6,10 @@
 
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import "../../assets/wireframe.css";
+// Source Tailwind — compiled live by @tailwindcss/vite (serve mode) so new
+// utility classes hot-reload without a manual `tailwindcss` rebuild. Production
+// uses the prebuilt assets/wireframe.css instead (see vite.config.ts).
+import "../styles/index.css";
 import "./dev.css";
 import { App } from "../src/App";
 import { stampModel } from "../src/model/stamp";

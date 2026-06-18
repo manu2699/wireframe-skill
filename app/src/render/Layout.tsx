@@ -18,7 +18,17 @@ export function Layout(props: { node: WFNode }) {
       </div>
     );
   }
-  const cls = n.type === "col" ? "wf-col " : "wf-row ";
+  if (n.type === "col") {
+    return (
+      <div
+        className={"wf-col " + modClasses(n)}
+        style={n.flex !== undefined ? { flex: n.flex } : undefined}
+      >
+        {n.children?.map((c, i) => <Node key={i} node={c} />)}
+      </div>
+    );
+  }
+  const cls = "wf-row ";
   return (
     <div className={cls + modClasses(n)}>
       {n.children?.map((c, i) => <Node key={i} node={c} />)}

@@ -11,12 +11,46 @@ export type Kind =
   | "table"
   | "list"
   | "form"
+  | "heading"
+  | "input"
   | "button"
   | "tabs"
   | "avatar"
-  | "image";
+  | "image"
+  | "search"
+  | "breadcrumb"
+  | "stepper"
+  | "accordion"
+  | "sidebar"
+  | "pagination"
+  | "timeline"
+  | "progress"
+  | "badge"
+  | "rating"
+  | "toggle"
+  | "slider"
+  | "datepicker"
+  | "upload"
+  | "radio-group"
+  | "checkbox-group"
+  | "alert"
+  | "modal"
+  | "notification-list"
+  | "chat-window";
 
-export type Mod = "tall" | "taller" | "placeholder" | "solid" | "shaded";
+export type Mod =
+  | "tall"
+  | "taller"
+  | "placeholder"
+  | "solid"
+  | "shaded"
+  | "end"
+  | "center"
+  | "between"
+  | "middle"
+  | "compact"
+  | "loose"
+  | "narrow";
 
 export type NodeType =
   | "box"
@@ -41,6 +75,12 @@ export interface NavItem {
 export interface NavGroup {
   label?: string;     // section heading, e.g. "WORKFLOW"
   items: NavItem[];
+}
+
+export interface ChartDataPoint {
+  label: string;
+  value: number;
+  target?: number;
 }
 
 export interface WFNode {
@@ -70,6 +110,76 @@ export interface WFNode {
   goto?: string;            // screenId
   opens?: string;           // modalId
   action?: string;          // "submit" | "save" | "delete" | …
+
+  // KPI / Stat enrichment
+  value?: string;           // "87%", "$12.4M"
+  subtitle?: string;        // "Recovery rate"  
+  trend?: "up" | "down";    // arrow indicator
+
+  // Form enrichment
+  fields?: Array<{
+    label: string;
+    type?: "text" | "select" | "textarea" | "toggle" | "datepicker" | "upload";
+    cols?: 1 | 2;
+    placeholder?: string;
+    dateValue?: string;
+    uploadLabel?: string;
+    checked?: boolean;
+  }>;
+
+  // Card enrichment
+  title?: string;           // bold heading inside card
+  meta?: string[];          // ["Due: Jan 5", "Assigned: AK"]
+  badges?: string[];        // ["Urgent", "Bug"] — rendered as chips
+  stats?: string[];         // ["3 comments", "2 attachments"] — footer row
+
+  // List enrichment
+  items?: string[];         // bullet items
+
+  // Tabs enrichment
+  tabs?: string[];          // tab labels
+  activeTab?: number;       // 0-based, default 0
+
+  // Avatar enrichment
+  initials?: string;        // "AK" — shown inside circle
+
+  // Batch 0: Foundation — Types + Layout Mods & kind enrichment fields
+  flex?: number;
+  placeholder?: string;
+  filters?: string[];
+  crumbs?: string[];
+  steps?: string[];
+  activeStep?: number;
+  sections?: { title: string; expanded?: boolean }[];
+  sidebarGroups?: { label?: string; items: string[] }[];
+  activeItem?: string;
+  pages?: number;
+  current?: number;
+  selectable?: boolean;
+  actions?: string[];
+  events?: { label: string; meta?: string }[];
+  percent?: number;
+  text?: string;
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  variant?: "default" | "success" | "warning" | "error";
+  rating?: number;
+  max?: number;
+  checked?: boolean;
+  toggleLabel?: string;
+  min?: number;
+  sliderValue?: number;
+  dateValue?: string;
+  uploadLabel?: string;
+  options?: string[];
+  selected?: number;
+  checkedItems?: number[];
+  message?: string;
+  alertType?: "info" | "warning" | "error" | "success";
+  modalTitle?: string;
+  modalFooter?: string[];
+  notifications?: { text: string; meta?: string; unread?: boolean }[];
+  messages?: { from: string; text: string; sent?: boolean }[];
+  chartData?: ChartDataPoint[];
 }
 
 export interface WFState {
