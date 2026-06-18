@@ -107,7 +107,14 @@ function handleRequest(req, res) {
   const f = slug && store.get(slug);
 
   if (!f || !f.model) {
-    res.writeHead(404).end("Unknown wireframe");
+    const waiting = `<!doctype html><html><head><meta charset="utf-8"><title>Wireframe</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#71717a;background:#f4f4f5}
+@keyframes s{to{transform:rotate(360deg)}}</style></head><body>
+<svg width="20" height="20" viewBox="0 0 20 20" style="animation:s .8s linear infinite"><circle cx="10" cy="10" r="8" fill="none" stroke="#d4d4d8" stroke-width="2"/><path d="M10 2a8 8 0 0 1 8 8" fill="none" stroke="#3f3f46" stroke-width="2" stroke-linecap="round"/></svg>
+<div style="font-size:13px;font-weight:500">Waiting for wireframe model…</div>
+<div style="font-size:11px;color:#a1a1aa">The agent is building the wireframe. This page will refresh automatically.</div>
+<script>setTimeout(function(){location.reload()},2000)</script></body></html>`;
+    res.writeHead(200, { "content-type": MIME[".html"] }).end(waiting);
     return;
   }
 
