@@ -56,15 +56,13 @@ Wait for approval, adjust, then draw (step 3).
 
 **After the list is agreed, offer to save it** to `docs/specs/<feature>.md` (intent + persona + screens + states), so the next run — or any consumer skill — starts from a real spec. Fill only the sections you have.
 
-### 3. Write the wireframe (one JSON model + two copied assets)
+### 3. Build the wireframe model (JSON only — no files written)
 
-Write to a predictable location, `./.wireframes/<feature-slug>/`:
+Construct the **WFModel JSON object** in memory. You do **not** write any files to the user's project — no `.wireframes/` directory, no HTML, no CSS, no JS. The MCP server holds the model in memory and serves it dynamically.
 
-- `wireframe.html` — copy `assets/template.html` (the thin shell). **Edit only the JSON inside `<script type="application/json" id="wf-model">…</script>`.** Leave the rest of the shell as-is; it links the stylesheet and the app bundle by relative path.
-- `wireframe.css` — copy `assets/wireframe.css` **verbatim** as a sibling. Frozen; never edit or regenerate.
-- `wireframe-app.js` — copy `assets/dist/wireframe-app.js` **verbatim** as a sibling. The prebuilt renderer/operating layer; never edit.
-
-Copy the two assets with a shell copy (e.g. `cp`), not by writing their contents — they're large and frozen. (When you use the `wireframe_*` MCP tools, `wireframe_open` auto-copies `wireframe.css` and `wireframe-app.js` for you, so you only need to write `wireframe.html`. Copy them yourself only for the standalone/no-MCP path.)
+If MCP tools are unavailable (rare fallback), write to `./.wireframes/<feature-slug>/`:
+- `wireframe.html` — copy `assets/template.html`, edit only the JSON inside `<script id="wf-model">`.
+- `wireframe.css` + `wireframe-app.js` — copy verbatim from `assets/`. Never edit.
 
 The **only thing you author** is the `#wf-model` JSON. Its shape:
 
@@ -246,25 +244,24 @@ The `ds` mapping is only useful if it uses the names the user's team uses. Don't
 
 ### 5. Open the preview, then iterate on the model
 
-After writing `wireframe.html`, **immediately attempt `wireframe_open`** (see Live loop below). Only if that tool is unavailable, fall back to giving the user the path and opening manually:
+**Always attempt the MCP path first.** Call `wireframe_open` immediately after constructing the model — if the tool call fails or returns a tool-not-found error, fall back to the clipboard path below.
 
+#### Live loop via the wireframe MCP server (no paste, no files)
+
+1. Call **`wireframe_open`** with `{ feature: "<slug>", model: <WFModel JSON> }`. The server holds the model in memory, serves it dynamically on localhost, opens the browser, and returns the URL. No files are written to the user's project. The browser's **"Send to agent"/"Copy feedback"** and **"✓ Approve"** buttons stream their block straight to you.
+2. Tell the user to comment/approve, then call **`wireframe_wait_feedback`** with `{ feature, timeoutMs }`. It blocks until the next block arrives and returns the **exact structured text** parsed below.
+3. Parse the feedback block (see §Consuming below). Apply changes to the JSON model only. Then call **`wireframe_update`** with `{ feature, model: <updated JSON object> }` — it updates the in-memory model and automatically reloads the already-open browser tab. No manual refresh needed. Call `wireframe_wait_feedback` again to receive the next round. Use `wireframe_status` for `{ approved, openComments }`. Loop until a `WIREFRAME APPROVED` block arrives, then go to step 6.
+
+The MCP server only changes the *transport* — it never generates, renders, or restyles.
+
+#### Clipboard fallback (only when MCP tools are unavailable)
+
+If `wireframe_open` is not available, write the model to `.wireframes/<slug>/wireframe.html` (see step 3 fallback) and open manually:
 - macOS: `open .wireframes/<feature-slug>/wireframe.html`
 - Linux: `xdg-open .wireframes/<feature-slug>/wireframe.html`
 - Windows: `start .wireframes/<feature-slug>/wireframe.html`
 
-In the clipboard fallback, tell the user they can **click any box to comment**, **toggle Click-through mode** to walk flows, then **"Copy feedback"** to paste back, or **"✓ Approve"** to sign off.
-
-Treat the model as a living file. Follow-up requests ("make Reason a Select", "drop the empty state", "add a loading state", "Submit should open a confirm modal") are **edits to the `#wf-model` JSON only** — change the node's fields, add a state, add a `modals[]` entry + `opens`, and tell the user to refresh. Never edit `wireframe.css` or `wireframe-app.js`.
-
-#### Live loop via the wireframe MCP server (no paste)
-
-**Always attempt the MCP path first.** After writing `wireframe.html`, call `wireframe_open` immediately — if the tool call fails or returns a tool-not-found error, fall back to the clipboard path below. Do not skip the attempt.
-
-1. Call **`wireframe_open`** with `{ feature: "<feature-slug>" }`. It copies the frozen assets if needed, serves `.wireframes/<slug>/` on localhost, opens the browser, returns the URL. The browser's **"Send to agent"/"Copy feedback"** and **"✓ Approve"** buttons stream their block straight to you.
-2. Tell the user to comment/approve, then call **`wireframe_wait_feedback`** with `{ feature, timeoutMs }`. It blocks until the next block arrives and returns the **exact structured text** parsed below.
-3. Parse the feedback block (see §Consuming below). Apply changes to the JSON model only. Then call **`wireframe_update`** with `{ feature, model: <updated JSON object> }` — it writes the new model to disk and automatically reloads the already-open browser tab. No manual refresh needed. Call `wireframe_wait_feedback` again to receive the next round. Use `wireframe_status` for `{ approved, openComments }`. Loop until a `WIREFRAME APPROVED` block arrives, then go to step 6.
-
-The MCP server only changes the *transport* — it never generates, renders, or restyles. Only use the clipboard flow if `wireframe_open` is unavailable.
+Tell the user they can **click any box to comment**, **toggle Click-through mode** to walk flows, then **"Copy feedback"** to paste back, or **"✓ Approve"** to sign off. Follow-up changes are edits to the `#wf-model` JSON only.
 
 #### Consuming a feedback block
 
@@ -293,7 +290,7 @@ Lifecycle: confirm screens (step 2) → draw the model (3–4) → iterate via f
 Input: "Wireframe the refund flow."
 - Step 1: read both; ask nothing.
 - Step 2: "Admins issue refunds, customers see confirmation. Screens: Admin refund form (default, error), Customer confirmation, Admin order list (adds Refunded badge); nav: Orders / Refunds. Drawing these — adjust?"
-- Steps 3–4: write `.wireframes/refund-flow/wireframe.html` with the model — a `nav` listing Orders/Refunds, the refund form (`kind:"form"`) with the reason box (`backend`,`ds` from the spec), a `kind:"button"` Submit with `action:"submit"`, the order list as a `table`. "Make Reason a Select" → edit that node's `ds`/label, refresh.
+- Steps 3–4: construct the model JSON — a `nav` listing Orders/Refunds, the refund form (`kind:"form"`) with the reason box (`backend`,`ds` from the spec), a `kind:"button"` Submit with `action:"submit"`, the order list as a `table`. Call `wireframe_open` with the model. "Make Reason a Select" → edit that node's `ds`/label, call `wireframe_update`.
 
 **Example B — PM, blank on screens, no files.**
 Input: "Show me what the screens look like for letting users invite teammates."

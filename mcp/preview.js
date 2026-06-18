@@ -1,0 +1,170 @@
+/**
+ * PreviewServer — HTTP + WebSocket server for browser preview.
+ *
+ * Serves wireframes dynamically from in-memory models (no disk I/O).
+ * Frozen assets (CSS, JS) are cached from the package's assets/ directory.
+ */
+
+import fs from "fs";
+import path from "path";
+import http from "http";
+import { exec } from "child_process";
+import { fileURLToPath } from "url";
+import { WebSocketServer } from "ws";
+import * as store from "./store.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ASSETS_DIR = path.join(__dirname, "..", "assets");
+
+const TEMPLATE_HTML = fs.readFileSync(path.join(ASSETS_DIR, "template.html"), "utf8");
+const CACHED_CSS = fs.readFileSync(path.join(ASSETS_DIR, "wireframe.css"));
+const CACHED_JS = fs.readFileSync(path.join(ASSETS_DIR, "dist", "wireframe-app.js"));
+
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".css":  "text/css; charset=utf-8",
+  ".js":   "text/javascript; charset=utf-8",
+};
+
+let httpServer = null;
+let wss = null;
+let baseUrl = null;
+
+export function getBaseUrl() {
+  return baseUrl;
+}
+
+function wsBootstrap(slug) {
+  return `
+<script>
+(function () {
+  var slug = ${JSON.stringify(slug)};
+  var ws, ready = false, backlog = [];
+  function connect() {
+    try {
+      ws = new WebSocket("ws://" + location.host + "/ws?feature=" + encodeURIComponent(slug));
+    } catch (e) { return; }
+    ws.onopen = function () {
+      ready = true;
+      while (backlog.length) ws.send(backlog.shift());
+      if (window.__wfOnConnect) window.__wfOnConnect();
+    };
+    ws.onclose = function () {
+      ready = false;
+      setTimeout(connect, 1500);
+      if (window.__wfOnDisconnect) window.__wfOnDisconnect();
+    };
+    ws.onerror = function () { try { ws.close(); } catch (e) {} };
+    ws.onmessage = function (e) {
+      try {
+        var msg = JSON.parse(e.data);
+        if (msg.type === "reload") window.location.reload();
+      } catch (ex) {}
+    };
+  }
+  connect();
+  window.__wfSend = function (block) {
+    var msg = JSON.stringify({ feature: slug, block: block });
+    if (ready) ws.send(msg); else backlog.push(msg);
+    var t = document.getElementById("__wf-sent");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "__wf-sent";
+      t.style.cssText = "position:fixed;bottom:80px;right:20px;z-index:2000;" +
+        "background:#16a34a;color:#fff;font:500 12px/1 -apple-system,sans-serif;" +
+        "padding:8px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(22,163,74,.3);" +
+        "opacity:0;transition:opacity .15s ease;";
+      document.body.appendChild(t);
+    }
+    t.textContent = "Sent to agent \\u2713";
+    t.style.opacity = "1";
+    clearTimeout(window.__wfSentT);
+    window.__wfSentT = setTimeout(function () { t.style.opacity = "0"; }, 1800);
+  };
+})();
+<\\/script>`;
+}
+
+function composeHtml(slug) {
+  const f = store.get(slug);
+  if (!f.model) return null;
+
+  let html = TEMPLATE_HTML.replace(
+    /(<script[^>]+id="wf-model"[^>]*>)([\s\S]*?)(<\/script>)/,
+    `$1\n${JSON.stringify(f.model, null, 2)}\n$3`,
+  );
+  const boot = wsBootstrap(slug);
+  html = html.includes("</body>")
+    ? html.replace("</body>", boot + "\n</body>")
+    : html + boot;
+  return html;
+}
+
+function handleRequest(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const parts = url.pathname.split("/").filter(Boolean);
+  const slug = parts[0];
+  const f = slug && store.get(slug);
+
+  if (!f || !f.model) {
+    res.writeHead(404).end("Unknown wireframe");
+    return;
+  }
+
+  const file = parts[1] || "wireframe.html";
+
+  if (file === "wireframe.html") {
+    const html = composeHtml(slug);
+    res.writeHead(200, { "content-type": MIME[".html"] }).end(html);
+    return;
+  }
+  if (file === "wireframe.css") {
+    res.writeHead(200, { "content-type": MIME[".css"] }).end(CACHED_CSS);
+    return;
+  }
+  if (file === "wireframe-app.js") {
+    res.writeHead(200, { "content-type": MIME[".js"] }).end(CACHED_JS);
+    return;
+  }
+
+  res.writeHead(404).end("Not found");
+}
+
+function handleWsConnection(socket, req) {
+  const slug = new URL(req.url, "http://localhost").searchParams.get("feature");
+  if (slug) {
+    const f = store.get(slug);
+    f.sockets.add(socket);
+    socket.on("close", () => f.sockets.delete(socket));
+  }
+  socket.on("message", (data) => {
+    let parsed;
+    try { parsed = JSON.parse(data.toString()); } catch (_) { return; }
+    const fslug = parsed.feature || slug;
+    if (fslug && typeof parsed.block === "string") store.ingestBlock(fslug, parsed.block);
+  });
+}
+
+export function start() {
+  if (httpServer) return Promise.resolve();
+  return new Promise((resolve) => {
+    httpServer = http.createServer(handleRequest);
+    wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+    wss.on("connection", handleWsConnection);
+
+    const port = process.env.WF_PORT ? parseInt(process.env.WF_PORT, 10) : 0;
+    httpServer.listen(port, "127.0.0.1", () => {
+      baseUrl = `http://127.0.0.1:${httpServer.address().port}`;
+      resolve();
+    });
+  });
+}
+
+export function openInBrowser(url) {
+  if (process.env.WF_NO_OPEN) return;
+  const cmd =
+    process.platform === "darwin" ? `open "${url}"` :
+    process.platform === "win32"  ? `start "" "${url}"` :
+                                    `xdg-open "${url}"`;
+  exec(cmd, () => {});
+}

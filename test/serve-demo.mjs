@@ -1,28 +1,59 @@
-// Boots the MCP server, opens a demo wireframe, prints the URL, and stays alive
-// so a browser can verify rendering + the live WS feedback toast.
-import fs from "fs";
-import os from "os";
+// Boots the MCP server, opens a demo wireframe with an in-memory model,
+// prints the URL, and stays alive so a browser can verify rendering + WS feedback.
 import path from "path";
 import { fileURLToPath } from "url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url)) + "/..";
-const proj = fs.mkdtempSync(path.join(os.tmpdir(), "wf-demo-"));
-const wfDir = path.join(proj, ".wireframes", "demo");
-fs.mkdirSync(wfDir, { recursive: true });
-fs.copyFileSync(path.join(root, "assets", "template.html"), path.join(wfDir, "wireframe.html"));
-fs.copyFileSync(path.join(root, "assets", "wireframe.css"), path.join(wfDir, "wireframe.css"));
+
+const DEMO_MODEL = {
+  feature: "Demo Dashboard",
+  change: "Example wireframe for manual testing",
+  designSource: "guess: generic primitives",
+  screens: [
+    {
+      id: "s_overview", name: "Overview",
+      states: [{ id: "default", name: "Default", nodes: [
+        { type: "row", children: [
+          { type: "nav", side: "left", groups: [
+            { label: "Main", items: [
+              { text: "Overview", active: true, goto: "s_overview" },
+              { text: "Settings", goto: "s_settings" },
+            ]},
+          ]},
+          { type: "col", children: [
+            { type: "grid", cols: 3, children: [
+              { type: "box", kind: "kpi", label: "Total users" },
+              { type: "box", kind: "kpi", label: "Revenue" },
+              { type: "box", kind: "kpi", label: "Conversion" },
+            ]},
+            { type: "box", kind: "chart:bars", mods: ["tall"], label: "Monthly trends" },
+          ]},
+        ]},
+      ]}],
+    },
+    {
+      id: "s_settings", name: "Settings",
+      states: [{ id: "default", name: "Default", nodes: [
+        { type: "box", kind: "form", label: "Preferences", backend: "PUT /settings" },
+        { type: "box", kind: "button", label: "Save", action: "submit" },
+      ]}],
+    },
+  ],
+};
 
 const transport = new StdioClientTransport({
   command: "node",
   args: [path.join(root, "mcp", "server.js")],
-  cwd: proj,
   env: { ...process.env, WF_NO_OPEN: "1", WF_PORT: process.env.WF_PORT || "5199" },
 });
 const client = new Client({ name: "demo", version: "1.0.0" }, { capabilities: {} });
 await client.connect(transport);
-const open = await client.callTool({ name: "wireframe_open", arguments: { feature: "demo" } });
+
+const open = await client.callTool({
+  name: "wireframe_open",
+  arguments: { feature: "Demo Dashboard", model: DEMO_MODEL },
+});
 console.log("URL:", open.content[0].text.match(/http:\/\/[^\s]+/)[0]);
-// keep alive
 setInterval(() => {}, 1 << 30);

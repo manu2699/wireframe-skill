@@ -74,7 +74,11 @@ assets/
   dist/           Build output — wireframe-app.js (generated, committed)
 
 bin/cli.js        CLI: install / uninstall / mcp / list commands
-mcp/server.js     MCP server: HTTP + WebSocket server + MCP tool handlers
+mcp/
+  server.js       Entry point — wires modules, connects MCP stdio transport
+  store.js        FeatureStore — in-memory model, feedback queue, approval state
+  preview.js      HTTP + WebSocket server — dynamic HTML composition, asset serving
+  tools.js        MCP tool definitions + handlers
 test/             MCP smoke test (smoke.mjs) + CLI registration tests (cli-mcp.mjs)
 ```
 
@@ -101,7 +105,68 @@ seams (`Storage`, `Transport`); `state/` holds the reactive logic; `ui/` and
 `app/src/render/registry.ts` (`type → component`), so a new node type is a new
 component plus one registry entry — no central switch to edit.
 
-The MCP server injects a WebSocket bootstrap into served HTML so the browser's "Copy feedback" and "✓ Approve" buttons push blocks directly to the agent instead of requiring a clipboard paste.
+**The MCP server holds wireframe models in memory** — no files are written to
+the user's project. `wireframe_open` accepts a model JSON object, the HTTP server
+composes HTML dynamically (template + in-memory model + WS bootstrap), and frozen
+assets (CSS, JS) are served directly from the package's `assets/` directory. The
+server is split into four modules:
+
+- `mcp/store.js` — feature state (model, feedback queue, approval, connected sockets)
+- `mcp/preview.js` — HTTP + WebSocket server (dynamic HTML, cached assets, browser launch)
+- `mcp/tools.js` — MCP tool schemas + handlers
+- `mcp/server.js` — entry point (~30 lines, wires everything together)
+
+## Running the MCP server
+
+**Via an AI agent harness** (the normal way):
+
+```bash
+# Register with your harness (Claude Code, Cursor, VS Code, etc.)
+npx wireframe-preview mcp claude        # or: cursor, vscode, windsurf, etc.
+
+# The harness launches the server automatically when agent calls wireframe_* tools.
+# Entry point: node mcp/server.js (over stdio)
+```
+
+This writes to `~/.claude/claude_desktop_config.json` (or equivalent) something like:
+
+```json
+{
+  "mcpServers": {
+    "wireframe-preview": {
+      "command": "node",
+      "args": ["/absolute/path/to/wireframe-preview/mcp/server.js"]
+    }
+  }
+}
+```
+
+**Standalone for development/testing:**
+
+```bash
+# Boot the MCP server with a demo wireframe, prints URL, stays alive
+node test/serve-demo.mjs
+# → URL: http://127.0.0.1:5199/demo-dashboard/wireframe.html
+
+# Custom port
+WF_PORT=8080 node test/serve-demo.mjs
+
+# Run the MCP smoke test (starts server, opens wireframe, simulates feedback over WS)
+node test/smoke.mjs
+```
+
+**Direct stdio (for harness development):**
+
+```bash
+# The server speaks MCP over stdio — pipe JSON-RPC messages to it
+node mcp/server.js
+# Tools: wireframe_open, wireframe_update, wireframe_wait_feedback,
+#        wireframe_poll_feedback, wireframe_status
+```
+
+Environment variables:
+- `WF_PORT` — fixed port for the HTTP server (default: random)
+- `WF_NO_OPEN` — skip auto-opening the browser
 
 ## The wireframe JSON model
 
