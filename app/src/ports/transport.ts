@@ -60,7 +60,7 @@ export function createLiveTransport(): Transport {
       if (live) {
         try {
           (window as any).__wfSend(block);
-          flash("Sent to agent ✓");
+          flash(connected ? "Sent to agent ✓" : "Queued — waiting for agent connection…");
           return;
         } catch {
           /* fall through to clipboard */

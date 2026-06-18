@@ -39,19 +39,25 @@ function wsBootstrap(slug) {
 <script>
 (function () {
   var slug = ${JSON.stringify(slug)};
-  var ws, ready = false, backlog = [];
+  var ws, ready = false, delay = 1500;
+  var BKEY = 'wf-bl-' + slug;
+  function getLs() { try { return JSON.parse(localStorage.getItem(BKEY)||'[]'); } catch(e){ return []; } }
+  function setLs(b) { try { localStorage.setItem(BKEY, JSON.stringify(b)); } catch(e){} }
   function connect() {
     try {
       ws = new WebSocket("ws://" + location.host + "/ws?feature=" + encodeURIComponent(slug));
     } catch (e) { return; }
     ws.onopen = function () {
       ready = true;
-      while (backlog.length) ws.send(backlog.shift());
+      delay = 1500;
+      var bl = getLs(); localStorage.removeItem(BKEY);
+      while (bl.length) ws.send(bl.shift());
       if (window.__wfOnConnect) window.__wfOnConnect();
     };
     ws.onclose = function () {
       ready = false;
-      setTimeout(connect, 1500);
+      setTimeout(connect, delay);
+      delay = Math.min(delay * 2, 30000);
       if (window.__wfOnDisconnect) window.__wfOnDisconnect();
     };
     ws.onerror = function () { try { ws.close(); } catch (e) {} };
@@ -65,7 +71,7 @@ function wsBootstrap(slug) {
   connect();
   window.__wfSend = function (block) {
     var msg = JSON.stringify({ feature: slug, block: block });
-    if (ready) ws.send(msg); else backlog.push(msg);
+    if (ready) ws.send(msg); else setLs([].concat(getLs(), [msg]));
     var t = document.getElementById("__wf-sent");
     if (!t) {
       t = document.createElement("div");
@@ -122,7 +128,7 @@ function handleRequest(req, res) {
 
   if (file === "wireframe.html") {
     const html = composeHtml(slug);
-    res.writeHead(200, { "content-type": MIME[".html"] }).end(html);
+    res.writeHead(200, { "content-type": MIME[".html"], "cache-control": "no-store" }).end(html);
     return;
   }
   if (file === "wireframe.css") {
@@ -138,6 +144,9 @@ function handleRequest(req, res) {
 }
 
 function handleWsConnection(socket, req) {
+  socket.isAlive = true;
+  socket.on("pong", () => { socket.isAlive = true; });
+
   const slug = new URL(req.url, "http://localhost").searchParams.get("feature");
   if (slug) {
     const f = store.get(slug);
@@ -158,6 +167,15 @@ export function start() {
     httpServer = http.createServer(handleRequest);
     wss = new WebSocketServer({ server: httpServer, path: "/ws" });
     wss.on("connection", handleWsConnection);
+
+    const heartbeat = setInterval(() => {
+      wss.clients.forEach((ws) => {
+        if (!ws.isAlive) { ws.terminate(); return; }
+        ws.isAlive = false;
+        ws.ping();
+      });
+    }, 25000);
+    httpServer.on("close", () => clearInterval(heartbeat));
 
     const port = process.env.WF_PORT ? parseInt(process.env.WF_PORT, 10) : 0;
     httpServer.listen(port, "127.0.0.1", () => {

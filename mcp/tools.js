@@ -31,7 +31,7 @@ export const TOOLS = [
       type: "object",
       properties: {
         feature:   { type: "string" },
-        timeoutMs: { type: "number", description: "Max wait in ms (default 600000)." },
+        timeoutMs: { type: "number", description: "Max wait in ms (default 3600000 = 1 hour; 0 = wait indefinitely)." },
       },
       required: ["feature"],
     },
@@ -94,7 +94,7 @@ async function handleOpen(slug, args) {
 }
 
 async function handleWaitFeedback(slug, args) {
-  const timeoutMs = typeof args.timeoutMs === "number" ? args.timeoutMs : 600000;
+  const timeoutMs = typeof args.timeoutMs === "number" ? args.timeoutMs : 3600000;
   const block = await store.waitForBlock(slug, timeoutMs);
   return reply(
     block ||

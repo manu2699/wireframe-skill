@@ -81,16 +81,19 @@ export function drainQueue(slug) {
   return f.queue.splice(0);
 }
 
-export function waitForBlock(slug, timeoutMs = 600000) {
+export function waitForBlock(slug, timeoutMs = 3600000) {
   const f = get(slug);
   if (f.queue.length) return Promise.resolve(f.queue.shift());
   return new Promise((resolve) => {
     const onBlock = (b) => { clearTimeout(timer); resolve(b); };
-    const timer = setTimeout(() => {
-      const i = f.waiters.indexOf(onBlock);
-      if (i !== -1) f.waiters.splice(i, 1);
-      resolve(null);
-    }, timeoutMs);
+    let timer;
+    if (timeoutMs > 0) {
+      timer = setTimeout(() => {
+        const i = f.waiters.indexOf(onBlock);
+        if (i !== -1) f.waiters.splice(i, 1);
+        resolve(null);
+      }, timeoutMs);
+    }
     f.waiters.push(onBlock);
   });
 }

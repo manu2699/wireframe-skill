@@ -5,7 +5,7 @@
 // Popover placement is delegated to Radix (collision-aware): we only record the
 // clicked element's viewport rect so an invisible anchor can sit over it.
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { Comment, WFModel } from "../types";
 import type { IdMeta } from "../model/stamp";
 import type { Transport } from "../ports/transport";
@@ -35,20 +35,13 @@ interface ReviewDeps {
   upsert: (c: Comment) => void;
   remove: (id: string) => void;
   transport: Transport;
+  flash: (msg: string) => void;
 }
 
 export function useReview(deps: ReviewDeps) {
-  const { model, metaOf, comments, order, upsert, remove, transport } = deps;
+  const { model, metaOf, comments, order, upsert, remove, transport, flash } = deps;
 
   const [popover, setPopover] = useState<PopoverState | null>(null);
-  const [sent, setSent] = useState("");
-  const flashTimer = useRef<ReturnType<typeof setTimeout>>();
-
-  const flash = useCallback((msg: string) => {
-    setSent(msg);
-    clearTimeout(flashTimer.current);
-    flashTimer.current = setTimeout(() => setSent(""), 2200);
-  }, []);
 
   // Open the comment popover anchored to the clicked element.
   const openComment = useCallback((id: string, el: HTMLElement) => {
@@ -97,5 +90,5 @@ export function useReview(deps: ReviewDeps) {
     [model, comments, metaOf, transport, flash],
   );
 
-  return { popover, sent, openComment, closeComment, saveComment, deleteComment, onFeedback, onApprove };
+  return { popover, openComment, closeComment, saveComment, deleteComment, onFeedback, onApprove };
 }
