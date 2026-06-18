@@ -11,6 +11,15 @@ export function normalizeModel(raw: unknown): WFModel {
   const m = raw as WFModel;
   const shared = m.shared ?? {};
 
+  // Guard: screens must be an array — the agent may send a malformed/partial
+  // model (e.g. nested under a "model" key, or with screens missing entirely).
+  if (!Array.isArray(m.screens)) {
+    throw new Error(
+      `wireframe: model.screens is ${m.screens == null ? "missing" : `not an array (got ${typeof m.screens})`}. ` +
+      `Check that the agent passed the full model object, not a nested wrapper.`,
+    );
+  }
+
   for (const sc of m.screens) {
     const scAny = sc as any;
     // D: flatten single-state screens
@@ -19,11 +28,11 @@ export function normalizeModel(raw: unknown): WFModel {
       delete scAny.nodes;
     }
     for (const st of sc.states ?? []) {
-      st.nodes = st.nodes.map((n) => normalizeNode(n, shared));
+      st.nodes = (st.nodes ?? []).map((n) => normalizeNode(n, shared));
     }
   }
   for (const md of m.modals ?? []) {
-    md.nodes = md.nodes.map((n) => normalizeNode(n, shared));
+    md.nodes = (md.nodes ?? []).map((n) => normalizeNode(n, shared));
   }
   return m;
 }

@@ -365,10 +365,26 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     if (!f.dir) return text(`wireframe_open must be called first for "${slug}".`, true);
     const htmlPath = path.join(f.dir, "wireframe.html");
     if (!fs.existsSync(htmlPath)) return text(`wireframe.html not found at ${htmlPath}.`, true);
+
+    // Validate the model: guard against agent passing a nested wrapper like { model: {...} }
+    let model = args.model;
+    if (model && !Array.isArray(model.screens) && model.model && Array.isArray(model.model.screens)) {
+      // Unwrap one level of nesting: agent passed { model: { screens: [...] } }
+      console.error("[wireframe] wireframe_update: model was nested under a 'model' key — unwrapping automatically.");
+      model = model.model;
+    }
+    if (!model || !Array.isArray(model.screens)) {
+      return text(
+        `wireframe_update error: model.screens is ${!model ? "missing" : `not an array (got ${typeof model.screens})`}.\n` +
+        `Pass the full WFModel object (with a "screens" array) as the "model" argument, not a wrapper around it.`,
+        true,
+      );
+    }
+
     let html = fs.readFileSync(htmlPath, "utf8");
     html = html.replace(
       /(<script[^>]+id="wf-model"[^>]*>)([\s\S]*?)(<\/script>)/,
-      `$1\n${JSON.stringify(args.model, null, 2)}\n$3`,
+      `$1\n${JSON.stringify(model, null, 2)}\n$3`,
     );
     fs.writeFileSync(htmlPath, html, "utf8");
     broadcastToFeature(slug, { type: "reload" });

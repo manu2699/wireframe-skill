@@ -282,8 +282,8 @@ The loop ends in more changes (a feedback block) or **sign-off** ("✓ Approve")
 
 - **Read it as understanding, not a build spec.** It's the low-fidelity grasp of *what the feature needs* — screens, IA, flow, and how each changed piece ties to a backend element and a component. Not code, not visual design. Never reproduce grey boxes as components or infer pixels/spacing/color.
 - **Check open comments first.** If `N open comments`, surface and resolve them before going further.
-- **Lock the spec.** Persist to `docs/specs/<feature>.md`: `status: approved`, the confirmed screens & states, and the box→backend→component(→flow) mapping. This is the single source of truth other tools consume.
-- **Produce a plan, then wait.** Turn the mapping into an implementation plan — each annotated box becomes "build component X (from `COMPONENT`) wired to backend Y (from `API`) on screen Z, reachable via `FLOW`" — present it, and **wait for a greenlight** before writing feature code. Approval signs off the *idea*, not the implementation.
+- **Never modify the original feature spec file** (e.g., `docs/specs/<feature>.md`) with UI mappings. Treat the original input spec as read-only product intent.
+- **Produce an implementation plan file, then wait.** Turn the mapping into a new file colocated with the input spec (e.g., `docs/specs/<feature>_implementation.md`). Each annotated box becomes "build component X (from `COMPONENT`) wired to backend Y (from `API`) on screen Z, reachable via `FLOW`". Present this new file to the user, and **wait for a greenlight** before writing feature code. Approval signs off the *idea*, not the implementation.
 
 Lifecycle: confirm screens (step 2) → draw the model (3–4) → iterate via feedback blocks (5) → **approve → lock spec → plan → wait** (6).
 
