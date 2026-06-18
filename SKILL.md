@@ -7,7 +7,7 @@ description: Generate fast, monochrome mid-fidelity wireframes to preview the UI
 
 Turn a described feature or change into a quick, throwaway wireframe so anyone can sanity-check the front-end impact before real UI is built. The point is **mid fidelity at low cost**: rough boxes labeling what each screen section is, **what's in the navigation**, where the new/changed pieces land, **how the screens connect** (clicks → screens, buttons → modals), and how each box maps back to (a) the feature/backend behavior and (b) the design system. Not a buildable interface, never colored or styled.
 
-You author **only a small JSON model**. A prebuilt app (`wireframe-app.js`, copied verbatim) renders it into the operating layer — screens, tabs, enumerated nav, monochrome glyphs, a clickable prototype, the comment/approve loop. You never write HTML or CSS, and you never touch the app bundle.
+You author **only a small JSON model** and pass it to the MCP server via `wireframe_open`. A prebuilt app renders it into the operating layer — screens, tabs, enumerated nav, monochrome glyphs, a clickable prototype, the comment/approve loop. No files are written to the user's project. You never write HTML or CSS, and you never touch the app bundle.
 
 This skill is for whoever shows up — a developer mid-feature, a PM scoping an idea, a designer thinking through flows, a QA engineer mapping states. It must produce a useful wireframe from a single sentence and a sharper one from a full spec. **Never block on missing input, never require backend knowledge.**
 
@@ -56,13 +56,9 @@ Wait for approval, adjust, then draw (step 3).
 
 **After the list is agreed, offer to save it** to `docs/specs/<feature>.md` (intent + persona + screens + states), so the next run — or any consumer skill — starts from a real spec. Fill only the sections you have.
 
-### 3. Build the wireframe model (JSON only — no files written)
+### 3. Build the wireframe model (JSON only — NEVER write files)
 
-Construct the **WFModel JSON object** in memory. You do **not** write any files to the user's project — no `.wireframes/` directory, no HTML, no CSS, no JS. The MCP server holds the model in memory and serves it dynamically.
-
-If MCP tools are unavailable (rare fallback), write to `./.wireframes/<feature-slug>/`:
-- `wireframe.html` — copy `assets/template.html`, edit only the JSON inside `<script id="wf-model">`.
-- `wireframe.css` + `wireframe-app.js` — copy verbatim from `assets/`. Never edit.
+Construct the **WFModel JSON object** in memory, then pass it to `wireframe_open`. **NEVER create a `.wireframes/` directory. NEVER write HTML, CSS, or JS files to the user's project. NEVER run `mkdir` for wireframes. NEVER copy template files.** The MCP server holds the model in memory and serves it dynamically — there is no file-based workflow.
 
 The **only thing you author** is the `#wf-model` JSON. Its shape:
 
@@ -244,7 +240,7 @@ The `ds` mapping is only useful if it uses the names the user's team uses. Don't
 
 ### 5. Open the preview, then iterate on the model
 
-**Always attempt the MCP path first.** Call `wireframe_open` immediately after constructing the model — if the tool call fails or returns a tool-not-found error, fall back to the clipboard path below.
+**Use the MCP path. Period.** Call `wireframe_open` immediately after constructing the model. Do NOT write files to `.wireframes/` or anywhere else. There is no file-based fallback.
 
 #### Live loop via the wireframe MCP server (no paste, no files)
 
@@ -254,14 +250,9 @@ The `ds` mapping is only useful if it uses the names the user's team uses. Don't
 
 The MCP server only changes the *transport* — it never generates, renders, or restyles.
 
-#### Clipboard fallback (only when MCP tools are unavailable)
+#### If wireframe_open call fails
 
-If `wireframe_open` is not available, write the model to `.wireframes/<slug>/wireframe.html` (see step 3 fallback) and open manually:
-- macOS: `open .wireframes/<feature-slug>/wireframe.html`
-- Linux: `xdg-open .wireframes/<feature-slug>/wireframe.html`
-- Windows: `start .wireframes/<feature-slug>/wireframe.html`
-
-Tell the user they can **click any box to comment**, **toggle Click-through mode** to walk flows, then **"Copy feedback"** to paste back, or **"✓ Approve"** to sign off. Follow-up changes are edits to the `#wf-model` JSON only.
+If `wireframe_open` returns an error, report the error to the user and ask them to check their MCP server configuration. Do NOT fall back to writing files — there is no file-based fallback. The wireframe preview requires the MCP server to be running.
 
 #### Consuming a feedback block
 
@@ -275,14 +266,112 @@ When you receive a block delimited `===== WIREFRAME FEEDBACK: <feature> =====` �
 
 ### 6. Approval & handoff (the terminal signal)
 
-The loop ends in more changes (a feedback block) or **sign-off** ("✓ Approve"). An approval block is delimited `===== WIREFRAME APPROVED: <feature> =====` … `===== END APPROVAL (K mapped boxes, N open comments) =====` and carries the agreed **screens** plus every annotated element's `id | label | screen | state | API | COMPONENT | FLOW` mapping. When you receive one:
+The loop ends in more changes (a feedback block) or **sign-off** ("✓ Approve"). The approval block is delimited `===== WIREFRAME APPROVED: <feature> =====` … `===== END APPROVAL (K mapped boxes, N open comments) =====` and now carries:
+
+- **Screens** — each with id, name, IA role, and enumerated states
+- **Modals** — each with id, name, and form field inventory
+- **Flow map** — screen→screen and screen→modal transitions
+- **New & Changed elements** — every element marked `✦ new` or `~ changed`
+- **Form fields** — field names and types for both in-screen and modal forms
+- **Box mapping** — every annotated element's `id | label | screen | state | API | COMPONENT | FLOW`
+
+When you receive one:
 
 - **Read it as understanding, not a build spec.** It's the low-fidelity grasp of *what the feature needs* — screens, IA, flow, and how each changed piece ties to a backend element and a component. Not code, not visual design. Never reproduce grey boxes as components or infer pixels/spacing/color.
 - **Check open comments first.** If `N open comments`, surface and resolve them before going further.
 - **Never modify the original feature spec file** (e.g., `docs/specs/<feature>.md`) with UI mappings. Treat the original input spec as read-only product intent.
-- **Produce an implementation plan file, then wait.** Turn the mapping into a new file colocated with the input spec (e.g., `docs/specs/<feature>_implementation.md`). Each annotated box becomes "build component X (from `COMPONENT`) wired to backend Y (from `API`) on screen Z, reachable via `FLOW`". Present this new file to the user, and **wait for a greenlight** before writing feature code. Approval signs off the *idea*, not the implementation.
+- **Re-read the input spec before writing the plan.** The approval block carries UI structure; the input spec carries implementation details the wireframe doesn't model (database schema, validation rules, auth/permissions, error handling, race conditions). You must cross-reference both.
+- **Produce an implementation plan file, then wait.** Write `docs/specs/<feature>_implementation.md`. Follow the template below. Present to the user, and **wait for a greenlight** before writing feature code.
 
-Lifecycle: confirm screens (step 2) → draw the model (3–4) → iterate via feedback blocks (5) → **approve → lock spec → plan → wait** (6).
+#### Implementation plan template
+
+The plan file must cover every section below. Pull data from both the approval block AND the input spec. If a section has no relevant input, write "N/A" — don't omit the heading.
+
+```markdown
+# <Feature> — Implementation Plan
+
+**Status:** Wireframe approved (<date>). Ready for build.
+
+**Approval mapping:** <K> boxes mapped to endpoints, components, and flows.
+
+---
+
+## Screen & Modal Breakdown
+
+For EACH screen in the approval block, write a subsection:
+
+### Screen N: <Name> (`<id>`)
+
+**Route:** `/<path>` (from input spec routes or propose one)
+
+**States:** list every state from the approval block (default, empty, error, etc.)
+
+**Components:** for each mapped box on this screen:
+- `<ComponentName>` — what it shows
+  - Data: which API endpoint feeds it (from the `API` column)
+  - Design: which design-system component (from the `COMPONENT` column)
+
+**State & Queries:**
+- Hook names: derive from the API endpoints (e.g. `GET /lots` → `useLotsQuery()`)
+- Local state: tabs, filters, pagination — anything the UI manages client-side
+
+**Interactions:** for each flow originating from this screen:
+- What the user clicks → where it goes (from the Flow map section)
+
+**Responsive:** note layout behavior if input spec mentions it
+
+Do the same for EACH modal — add trigger source, form fields (from the approval
+block's Form Fields section), submission endpoint, success/error behavior, and
+mutation hook names.
+
+---
+
+## Navigation Integration
+
+**Routes:** full route table derived from screens
+**Route protection:** auth/permission rules from input spec's auth section
+
+---
+
+## Feature-Folder Structure
+
+Propose a file tree: `service/`, `components/`, `pages/`, `modals/`, `types.ts`.
+One component per mapped box, one page per screen, one modal per modal.
+
+---
+
+## Data Flow Summary
+
+Numbered list: which screen loads what, which modal POSTs where, which mutation
+triggers which query invalidation. Trace the full user journey.
+
+---
+
+## Validation & Error Handling
+
+- **Frontend:** form validation rules (required fields, numeric ranges, etc.)
+  derived from form field types in the approval block AND input spec constraints.
+- **Backend:** summarize relevant constraints from input spec (RLS, locks, status
+  rules, race conditions).
+- **Permissions:** which mutations need admin, which reads are open to members.
+
+---
+
+## Gaps & Cross-Reference Checklist
+
+Compare the approval block against the input spec and flag anything the wireframe
+didn't cover:
+- [ ] API endpoints in spec but not mapped to any box
+- [ ] Database fields in spec but not surfaced in any screen
+- [ ] Business rules in spec not reflected in UI states (e.g. "prevent using
+      lots if not released")
+- [ ] Auth/permission states not modeled (permission-denied screens)
+- [ ] Enum values in spec not fully represented in UI selects/filters
+
+This section is the safety net — it catches what the wireframe missed.
+```
+
+Lifecycle: confirm screens (step 2) → draw the model (3–4) → iterate via feedback blocks (5) → **approve → re-read input spec → write rich plan → wait** (6).
 
 ## Examples
 

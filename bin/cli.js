@@ -98,12 +98,18 @@ const PLATFORMS = {
   },
 };
 
-// Copy the assets/ folder (template.html shell, wireframe.css, dist/wireframe-app.js, feature-spec.md, DESIGN.md) next to the installed SKILL.md so its relative `assets/...` references resolve. Recursive, so the prebuilt app bundle in dist/ ships too. Without this the agent has to reconstruct the frozen shell/stylesheet/bundle from prose.
+// Copy only reference docs (DESIGN.md, feature-spec.md) next to the installed SKILL.md.
 function copyAssets(dest) {
   if (!fs.existsSync(ASSETS_SRC)) return;
   const assetsDest = path.join(path.dirname(dest), "assets");
-  fs.rmSync(assetsDest, { recursive: true, force: true });
-  fs.cpSync(ASSETS_SRC, assetsDest, { recursive: true });
+  fs.mkdirSync(assetsDest, { recursive: true });
+  const docsOnly = ["DESIGN.md", "feature-spec.md"];
+  for (const file of docsOnly) {
+    const src = path.join(ASSETS_SRC, file);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, path.join(assetsDest, file));
+    }
+  }
   console.log(`  ↳ assets/ → ${assetsDest}`);
 }
 
@@ -195,11 +201,11 @@ function autoDetect() {
   // Project-level platform dirs
   const projectChecks = [
     ["claude-project", ".claude"],
-    ["cursor",         ".cursor"],
-    ["windsurf",       ".windsurf"],
-    ["kilocode",       ".kilocode"],
-    ["amp-code",       ".amp"],
-    ["agents",         ".agents"],
+    ["cursor", ".cursor"],
+    ["windsurf", ".windsurf"],
+    ["kilocode", ".kilocode"],
+    ["amp-code", ".amp"],
+    ["agents", ".agents"],
   ];
   for (const [name, dir] of projectChecks) {
     if (fs.existsSync(path.join(cwd, dir))) detected.push(name);
@@ -220,7 +226,7 @@ function autoDetect() {
 // differ. Strategy: auto-merge JSON where safe, print a snippet otherwise.
 
 const MCP_NAME = PKG_NAME; // "wireframe-preview"
-const MCP_SERVER = { command: "npx", args: ["-y", "--package=wireframe-preview", "wf-preview-mcp"] };
+const MCP_SERVER = { command: "npx", args: ["-y", "wireframe-preview", "serve"] };
 
 const MCP_TARGETS = {
   "claude-project": {
@@ -363,7 +369,12 @@ if (cmd === "--version" || cmd === "-v") {
   process.exit(0);
 }
 
-if (!cmd || cmd === "help") {
+if (cmd === "serve" || cmd === "mcp-server") {
+  await import("../mcp/server.js");
+  await new Promise(() => {});
+}
+
+if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
   console.log(`
 wireframe-preview — install a low-fidelity wireframe skill into your AI agent
 
@@ -454,8 +465,8 @@ if (cmd === "mcp") {
   // No platform → safest default: print the config for every harness, edit nothing.
   if (!platformFlag) {
     console.log(
-      "MCP launch command (same everywhere): npx -y wireframe-mcp\n" +
-        "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
+      "MCP launch command (same everywhere): npx -y wireframe-preview serve\n" +
+      "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
     );
     for (const [name, t] of Object.entries(MCP_TARGETS)) printMcpSnippet(name, t);
     process.exit(0);

@@ -61,12 +61,7 @@ Once installed, invoke the skill inside your agent. Point it at whatever you hav
 - **From pasted endpoints** — paste your route definitions and say `wireframe this`
 - **From nothing** — just describe what the feature does; the skill proposes the screens and you prune
 
-You author one small JSON model (schema in [SKILL.md](SKILL.md)); the skill writes three files to `.wireframes/<feature-slug>/`:
-- `wireframe.html` — a thin shell. The agent edits **only** the JSON inlined in its `<script id="wf-model">` block; the rest links the CSS and app bundle. Open this in your browser.
-- `wireframe.css` — frozen stylesheet, copied verbatim, never edited
-- `wireframe-app.js` — prebuilt React renderer/operating layer, copied verbatim, never edited
-
-The MCP server auto-copies `wireframe.css` + `wireframe-app.js` on `wireframe_open`; for the standalone (no-MCP) path the skill copies them itself.
+You author one small JSON model (schema in [SKILL.md](SKILL.md)) and pass it to the MCP server via `wireframe_open`. The server holds the model in memory, composes HTML dynamically, and serves it on localhost — **no files are written to your project**. The prebuilt React app (`wireframe-app.js`) and frozen stylesheet (`wireframe.css`) are served directly from the package directory.
 
 ---
 
@@ -96,9 +91,7 @@ You author a JSON model — a `screens → states → nodes` tree — and the pr
 
 The copy-paste feedback loop works in any harness, including pure chat. If you're on a **local** harness (Claude Code, Cursor, Cline, Windsurf, Codex), you can drop the paste step entirely with the bundled **MCP server**.
 
-It serves your `.wireframes/<feature>/` on localhost, opens it in your browser, and streams the **"Copy feedback"** / **"✓ Approve"** blocks straight back to the agent over a WebSocket — clipboard stays as the offline fallback. The wireframe artifact and its frozen CSS are unchanged; the server only changes how the block reaches the agent.
-
-It also serves a **direct-edit mode** at `/editor/?feature=<slug>` — a small Solid editor where you drag boxes to reorder or move them, relabel them, and remap their backend / design-system annotations yourself. Saving rewrites `wireframe.html` on disk and notifies the agent (which re-reads the file). The editor only manipulates the same layout primitives and never the frozen box styling, so the wireframe stays low-fidelity.
+The agent passes the wireframe model to `wireframe_open`, which holds it in memory and serves it on localhost. The browser streams **"Copy feedback"** / **"✓ Approve"** blocks back to the agent over a WebSocket — no clipboard paste needed. Updates go through `wireframe_update`, which swaps the in-memory model and auto-reloads the browser.
 
 ### Setup (two commands)
 
@@ -124,7 +117,8 @@ npx wireframe-preview mcp --remove cursor  # unregister
 
 The launch command is the same everywhere — `npx -y wireframe-mcp`, no global install. Once registered, the skill auto-detects the `wireframe_*` tools and uses them instead of asking you to paste. Tools exposed:
 
-- `wireframe_open` — serve a wireframe on localhost and open the browser
+- `wireframe_open` — accept a model JSON, serve it on localhost, open the browser
+- `wireframe_update` — swap the in-memory model and auto-reload the browser
 - `wireframe_wait_feedback` — block until the next feedback/approval block arrives
 - `wireframe_poll_feedback` — non-blocking drain of pending blocks
 - `wireframe_status` — `{ approved, openComments, url }`
@@ -160,7 +154,7 @@ npx wireframe-preview install
 Then inside your agent:
 ```
 /feature-spec      → writes docs/specs/refund-flow.md
-/wireframe-preview → reads it, proposes screens, draws .wireframes/refund-flow/wireframe.html
+/wireframe-preview → reads it, proposes screens, opens wireframe via MCP server
 ```
 
 ---
@@ -173,7 +167,7 @@ The renderer is a React app (shadcn/ui + Tailwind chrome), built with Vite (`@vi
 npm run build   # tailwindcss → assets/wireframe.css, vite build → assets/dist/wireframe-app.js (~90KB gz)
 ```
 
-The skill copies that bundle verbatim into each `.wireframes/<slug>/` alongside the frozen `wireframe.css`. Agents never edit `app/src/`, `wireframe.css`, or `wireframe-app.js` — they only author the `#wf-model` JSON inside the `wireframe.html` shell.
+The MCP server serves the bundle and stylesheet directly from `assets/` — no files are copied into the user's project. Agents never edit `app/src/`, `wireframe.css`, or `wireframe-app.js` — they only author the JSON model and pass it to the MCP tools.
 
 ---
 
