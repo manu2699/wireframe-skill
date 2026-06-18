@@ -1,6 +1,6 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.7",
+  "version": "1.0.8-beta.0",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
