@@ -1,128 +1,75 @@
+// Showcase for all render kinds — rewritten with compact syntax.
+// Demonstrates: omitted type:"box", shorthand row/col, screen roles,
+// flows, new/changed badges, and single-state shorthand.
 import type { WFModel } from "../src/types";
 
 const model: WFModel = {
   feature: "All Renderers Showcase",
-  change: "Demonstrate and verify all components, kinds, layout modifiers, and enriched renderings.",
+  change: "Demonstrate all components, kinds, layout modifiers, and enriched renderings.",
   designSource: "guess: engineering design specs",
+
+  flows: [
+    { from: "screen_nav_struct", via: "tab", to: "screen_data_display" },
+    { from: "screen_data_display", via: "tab", to: "screen_user_input" },
+    { from: "screen_user_input", via: "tab", to: "screen_feedback_composite" },
+  ],
+
   screens: [
     {
       id: "screen_nav_struct",
       name: "1. Navigation & Structure",
-      states: [
+      role: "dashboard",
+      nodes: [
         {
-          id: "state_nav_struct",
-          name: "Navigation & Structure Showcase",
-          nodes: [
+          col: [
             {
-              type: "col",
-              children: [
+              row: [
+                { kind: "breadcrumb", crumbs: ["Home", "Settings", "Billing", "Invoices"] },
+                { kind: "breadcrumb", label: "Breadcrumb Fallback (No enrichment)" },
+              ],
+            },
+            {
+              row: [
+                { kind: "search", placeholder: "Search transactions...", filters: ["All", "Pending", "Failed", "Cleared"] },
+                { kind: "search", label: "Search Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "stepper", steps: ["Cart", "Delivery", "Payment", "Confirm"], activeStep: 2 },
+                { kind: "stepper", label: "Stepper Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "breadcrumb",
-                      crumbs: ["Home", "Settings", "Billing", "Invoices"],
-                    },
-                    {
-                      type: "box",
-                      kind: "breadcrumb",
-                      label: "Breadcrumb Fallback (No enrichment)",
-                    },
+                  kind: "sidebar",
+                  activeItem: "Invoices",
+                  sidebarGroups: [
+                    { label: "Dashboard", items: ["Overview", "Analytics"] },
+                    { label: "Finance", items: ["Transactions", "Invoices", "Settings"] },
                   ],
                 },
+                { kind: "sidebar", label: "Sidebar Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "search",
-                      placeholder: "Search transactions...",
-                      filters: ["All", "Pending", "Failed", "Cleared"],
-                    },
-                    {
-                      type: "box",
-                      kind: "search",
-                      label: "Search Fallback",
-                    },
+                  kind: "accordion",
+                  sections: [
+                    { title: "General Settings", expanded: true },
+                    { title: "Notifications Control", expanded: false },
+                    { title: "Developer API Access", expanded: false },
                   ],
                 },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "stepper",
-                      steps: ["Cart", "Delivery", "Payment", "Confirm"],
-                      activeStep: 2,
-                    },
-                    {
-                      type: "box",
-                      kind: "stepper",
-                      label: "Stepper Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "sidebar",
-                      activeItem: "Invoices",
-                      sidebarGroups: [
-                        {
-                          label: "Dashboard",
-                          items: ["Overview", "Analytics"],
-                        },
-                        {
-                          label: "Finance",
-                          items: ["Transactions", "Invoices", "Settings"],
-                        },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "sidebar",
-                      label: "Sidebar Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "accordion",
-                      sections: [
-                        { title: "General Settings", expanded: true },
-                        { title: "Notifications Control", expanded: false },
-                        { title: "Developer API Access", expanded: false },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "accordion",
-                      label: "Accordion Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "pagination",
-                      pages: 6,
-                      current: 3,
-                    },
-                    {
-                      type: "box",
-                      kind: "pagination",
-                      label: "Pagination Fallback",
-                    },
-                  ],
-                },
+                { kind: "accordion", label: "Accordion Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "pagination", pages: 6, current: 3 },
+                { kind: "pagination", label: "Pagination Fallback" },
               ],
             },
           ],
@@ -132,122 +79,58 @@ const model: WFModel = {
     {
       id: "screen_data_display",
       name: "2. Data Display",
-      states: [
+      role: "list",
+      nodes: [
         {
-          id: "state_data_display",
-          name: "Data Display Showcase",
-          nodes: [
+          col: [
             {
-              type: "col",
-              children: [
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "table",
-                      headers: ["User", "Access Level", "Status"],
-                      selectable: true,
-                      actions: ["Edit", "Delete"],
-                      rows: [
-                        ["Alice Vance", "Administrator", "Active"],
-                        ["Bob Vance", "Editor", "Suspended"],
-                        ["Charlie Vance", "Viewer", "Active"],
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "table",
-                      label: "Table Fallback",
-                    },
+                  kind: "table",
+                  headers: ["User", "Access Level", "Status"],
+                  selectable: true,
+                  actions: ["Edit", "Delete"],
+                  rows: [
+                    ["Alice Vance", "Administrator", "Active"],
+                    ["Bob Vance", "Editor", "Suspended"],
+                    ["Charlie Vance", "Viewer", "Active"],
                   ],
                 },
+                { kind: "table", label: "Table Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "timeline",
-                      events: [
-                        { label: "Created database cluster", meta: "10:30 AM" },
-                        { label: "Triggered auto-failover test", meta: "11:15 AM" },
-                        { label: "Completed compliance check", meta: "1:00 PM" },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "timeline",
-                      label: "Timeline Fallback",
-                    },
+                  kind: "timeline",
+                  events: [
+                    { label: "Created database cluster", meta: "10:30 AM" },
+                    { label: "Triggered auto-failover test", meta: "11:15 AM" },
+                    { label: "Completed compliance check", meta: "1:00 PM" },
                   ],
                 },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "progress",
-                      label: "Upload Progress",
-                      percent: 75,
-                    },
-                    {
-                      type: "box",
-                      kind: "progress",
-                      label: "Progress Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "badge",
-                      text: "In Production",
-                      variant: "success",
-                    },
-                    {
-                      type: "box",
-                      kind: "badge",
-                      text: "Needs Review",
-                      variant: "warning",
-                    },
-                    {
-                      type: "box",
-                      kind: "badge",
-                      text: "Deployment Failed",
-                      variant: "error",
-                    },
-                    {
-                      type: "box",
-                      kind: "badge",
-                      text: "Draft Status",
-                      variant: "default",
-                    },
-                    {
-                      type: "box",
-                      kind: "badge",
-                      label: "Badge Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "rating",
-                      label: "Customer Rating",
-                      max: 5,
-                      rating: 4,
-                    },
-                    {
-                      type: "box",
-                      kind: "rating",
-                      label: "Rating Fallback",
-                    },
-                  ],
-                },
+                { kind: "timeline", label: "Timeline Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "progress", label: "Upload Progress", percent: 75 },
+                { kind: "progress", label: "Progress Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "badge", text: "In Production", variant: "success" },
+                { kind: "badge", text: "Needs Review", variant: "warning" },
+                { kind: "badge", text: "Deployment Failed", variant: "error" },
+                { kind: "badge", text: "Draft Status", variant: "default" },
+                { kind: "badge", label: "Badge Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "rating", label: "Customer Rating", max: 5, rating: 4 },
+                { kind: "rating", label: "Rating Fallback" },
               ],
             },
           ],
@@ -257,119 +140,45 @@ const model: WFModel = {
     {
       id: "screen_user_input",
       name: "3. User Input",
-      states: [
+      role: "form",
+      nodes: [
         {
-          id: "state_user_input",
-          name: "User Input Showcase",
-          nodes: [
+          col: [
             {
-              type: "col",
-              children: [
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "toggle",
-                      checked: true,
-                      toggleLabel: "Dark Mode Enabled",
-                    },
-                    {
-                      type: "box",
-                      kind: "toggle",
-                      checked: false,
-                      toggleLabel: "Automatic Updates",
-                    },
-                    {
-                      type: "box",
-                      kind: "toggle",
-                      label: "Toggle Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "slider",
-                      label: "Volume Control",
-                      min: 0,
-                      max: 100,
-                      sliderValue: 65,
-                    },
-                    {
-                      type: "box",
-                      kind: "slider",
-                      label: "Slider Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "datepicker",
-                      label: "Due Date",
-                      dateValue: "June 25, 2026",
-                    },
-                    {
-                      type: "box",
-                      kind: "datepicker",
-                      label: "Datepicker Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "upload",
-                      uploadLabel: "Drag CSV invoice files here to parse",
-                    },
-                    {
-                      type: "box",
-                      kind: "upload",
-                      label: "Upload Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "radio-group",
-                      label: "Subscription Type",
-                      options: ["Free Tier", "Standard Monthly", "Professional Annual"],
-                      selected: 1,
-                    },
-                    {
-                      type: "box",
-                      kind: "radio-group",
-                      label: "Radio Fallback",
-                    },
-                  ],
-                },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "checkbox-group",
-                      label: "User Preferences",
-                      options: ["Receive newsletters", "Enable SMS logs", "Share analytics data"],
-                      checkedItems: [0, 2],
-                    },
-                    {
-                      type: "box",
-                      kind: "checkbox-group",
-                      label: "Checkbox Group Fallback",
-                    },
-                  ],
-                },
+              row: [
+                { kind: "toggle", checked: true, toggleLabel: "Dark Mode Enabled" },
+                { kind: "toggle", checked: false, toggleLabel: "Automatic Updates" },
+                { kind: "toggle", label: "Toggle Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "slider", label: "Volume Control", min: 0, max: 100, sliderValue: 65 },
+                { kind: "slider", label: "Slider Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "datepicker", label: "Due Date", dateValue: "June 25, 2026" },
+                { kind: "datepicker", label: "Datepicker Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "upload", uploadLabel: "Drag CSV files here" },
+                { kind: "upload", label: "Upload Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "radio-group", label: "Subscription Type", options: ["Free Tier", "Standard Monthly", "Professional Annual"], selected: 1 },
+                { kind: "radio-group", label: "Radio Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "checkbox-group", label: "User Preferences", options: ["Newsletters", "SMS logs", "Analytics"], checkedItems: [0, 2] },
+                { kind: "checkbox-group", label: "Checkbox Group Fallback" },
               ],
             },
           ],
@@ -379,111 +188,57 @@ const model: WFModel = {
     {
       id: "screen_feedback_composite",
       name: "4. Feedback & Composite",
-      states: [
+      role: "detail",
+      nodes: [
         {
-          id: "state_feedback_composite",
-          name: "Feedback & Composite Showcase",
-          nodes: [
+          col: [
             {
-              type: "col",
-              children: [
+              row: [
+                { kind: "alert", message: "Connection restored.", alertType: "success" },
+                { kind: "alert", message: "Memory at 92%.", alertType: "warning" },
+                { kind: "alert", message: "Database lock error.", alertType: "error" },
+                { kind: "alert", label: "Alert Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
+                  kind: "modal",
+                  modalTitle: "Delete Workspace",
+                  modalFooter: ["Cancel", "Confirm Delete"],
                   children: [
-                    {
-                      type: "box",
-                      kind: "alert",
-                      message: "Connection has been successfully restored.",
-                      alertType: "success",
-                    },
-                    {
-                      type: "box",
-                      kind: "alert",
-                      message: "Vitals check warning: memory utilization at 92%.",
-                      alertType: "warning",
-                    },
-                    {
-                      type: "box",
-                      kind: "alert",
-                      message: "Fatal database lock error in cluster-A.",
-                      alertType: "error",
-                    },
-                    {
-                      type: "box",
-                      kind: "alert",
-                      label: "Alert Fallback",
-                    },
+                    { row: [{ kind: "alert", message: "Action is permanent.", alertType: "warning" }] },
                   ],
                 },
+                { kind: "modal", label: "Modal Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "modal",
-                      modalTitle: "Delete Workspace Confirmation",
-                      modalFooter: ["Cancel", "Confirm Delete"],
-                      children: [
-                        {
-                          type: "row",
-                          children: [
-                            {
-                              type: "box",
-                              kind: "alert",
-                              message: "Warning: This action is permanent and cannot be undone.",
-                              alertType: "warning",
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "modal",
-                      label: "Modal Fallback",
-                    },
+                  kind: "notification-list",
+                  label: "Security Alerts",
+                  notifications: [
+                    { text: "Suspicious login from IP 192.168.1.55", meta: "5m ago", unread: true },
+                    { text: "TLS certificate renewed", meta: "1h ago" },
+                    { text: "New API key generated", meta: "2d ago" },
                   ],
                 },
+                { kind: "notification-list", label: "Notifications Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "notification-list",
-                      label: "Security Center Alerts",
-                      notifications: [
-                        { text: "Suspicious login attempt detected from IP 192.168.1.55", meta: "5m ago", unread: true },
-                        { text: "TLS Certificate has been renewed automatically", meta: "1h ago", unread: false },
-                        { text: "New API secret key generated by developer", meta: "2d ago", unread: false },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "notification-list",
-                      label: "Notifications Fallback",
-                    },
+                  kind: "chat-window",
+                  label: "Support Thread",
+                  messages: [
+                    { from: "Bot", text: "How can we help?", sent: false },
+                    { from: "Customer", text: "Webhook issue.", sent: true },
+                    { from: "Agent", text: "Share endpoint URL?", sent: false },
                   ],
                 },
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "chat-window",
-                      label: "Customer Support Thread",
-                      messages: [
-                        { from: "System Bot", text: "Hello! How can we assist you today?", sent: false },
-                        { from: "Customer", text: "I'm having trouble configuring the webhook endpoint.", sent: true },
-                        { from: "Agent Sarah", text: "Let me check that. Can you share the endpoint URL?", sent: false },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "chat-window",
-                      label: "Chat Fallback",
-                    },
-                  ],
-                },
+                { kind: "chat-window", label: "Chat Fallback" },
               ],
             },
           ],
@@ -493,92 +248,20 @@ const model: WFModel = {
     {
       id: "screen_layout_modifiers",
       name: "5. Layout & Grid Mods",
-      states: [
+      nodes: [
         {
-          id: "state_layout_modifiers",
-          name: "Layout Alignments, Spacing, and Flex Sizing",
-          nodes: [
+          col: [
+            { row: [{ kind: "badge", text: "Aligned End", variant: "default" }, { kind: "badge", text: "Secondary", variant: "default" }], mods: ["end"] },
+            { row: [{ kind: "badge", text: "Aligned Center", variant: "default" }, { kind: "badge", text: "Secondary", variant: "default" }], mods: ["center"] },
+            { row: [{ kind: "badge", text: "Between Left", variant: "default" }, { kind: "badge", text: "Between Right", variant: "default" }], mods: ["between"] },
+            { row: [{ kind: "badge", text: "Vertically Middle", variant: "default" }, { kind: "badge", text: "Tall Row", variant: "default" }], mods: ["middle", "tall"] },
+            { row: [{ kind: "badge", text: "Compact Gap", variant: "default" }, { kind: "badge", text: "6px", variant: "default" }], mods: ["compact"] },
+            { row: [{ kind: "badge", text: "Loose Gap", variant: "default" }, { kind: "badge", text: "20px", variant: "default" }], mods: ["loose"] },
             {
-              type: "col",
-              children: [
-                // Horizontal alignment testing
-                {
-                  type: "row",
-                  mods: ["end"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Aligned End (Right)", variant: "default" },
-                    { type: "box", kind: "badge", text: "Secondary Badge", variant: "default" },
-                  ],
-                },
-                {
-                  type: "row",
-                  mods: ["center"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Aligned Center", variant: "default" },
-                    { type: "box", kind: "badge", text: "Secondary Badge", variant: "default" },
-                  ],
-                },
-                {
-                  type: "row",
-                  mods: ["between"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Aligned Between (Left)", variant: "default" },
-                    { type: "box", kind: "badge", text: "Aligned Between (Right)", variant: "default" },
-                  ],
-                },
-                // Vertical alignment testing
-                {
-                  type: "row",
-                  mods: ["middle", "tall"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Vertically Centered (Middle)", variant: "default" },
-                    { type: "box", kind: "badge", text: "In Tall Row", variant: "default" },
-                  ],
-                },
-                // Spacing testing
-                {
-                  type: "row",
-                  mods: ["compact"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Compact Gap", variant: "default" },
-                    { type: "box", kind: "badge", text: "6px spacing", variant: "default" },
-                  ],
-                },
-                {
-                  type: "row",
-                  mods: ["loose"],
-                  children: [
-                    { type: "box", kind: "badge", text: "Loose Gap", variant: "default" },
-                    { type: "box", kind: "badge", text: "20px spacing", variant: "default" },
-                  ],
-                },
-                // Flex sizing on columns testing
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "col",
-                      flex: 1,
-                      children: [
-                        { type: "box", label: "Column Weight: flex = 1" },
-                      ],
-                    },
-                    {
-                      type: "col",
-                      flex: 3,
-                      children: [
-                        { type: "box", label: "Column Weight: flex = 3 (Should take up 3x horizontal space)" },
-                      ],
-                    },
-                    {
-                      type: "col",
-                      mods: ["narrow"],
-                      children: [
-                        { type: "box", label: "Narrow Column (Takes min space)" },
-                      ],
-                    },
-                  ],
-                },
+              row: [
+                { col: [{ label: "flex = 1" }], flex: 1 },
+                { col: [{ label: "flex = 3 (3× wider)" }], flex: 3 },
+                { col: [{ label: "Narrow (min space)" }], mods: ["narrow"] },
               ],
             },
           ],
@@ -588,192 +271,76 @@ const model: WFModel = {
     {
       id: "screen_enriched_kinds",
       name: "6. Enriched Kinds",
-      states: [
+      nodes: [
         {
-          id: "state_enriched_kinds",
-          name: "Enriched Kinds Showcase",
-          nodes: [
+          col: [
             {
-              type: "col",
-              children: [
-                // KPI / Stat
+              row: [
+                { kind: "kpi", label: "KPI (Up)", value: "$45.2M", subtitle: "Total revenue", trend: "up", new: true },
+                { kind: "stat", label: "Stat (Down)", value: "12%", subtitle: "Bounce rate", trend: "down", changed: true },
+                { kind: "kpi", label: "KPI Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "kpi",
-                      label: "KPI Enriched (Up Trend)",
-                      value: "$45.2M",
-                      subtitle: "Total revenue",
-                      trend: "up",
-                    },
-                    {
-                      type: "box",
-                      kind: "stat",
-                      label: "Stat Enriched (Down Trend)",
-                      value: "12%",
-                      subtitle: "Bounce rate",
-                      trend: "down",
-                    },
-                    {
-                      type: "box",
-                      kind: "kpi",
-                      label: "KPI Fallback (No enrichment)",
-                    },
+                  kind: "form",
+                  label: "Enriched Form (2-Col)",
+                  fields: [
+                    { label: "Full Name", type: "text", cols: 2 },
+                    { label: "Work Email", type: "text", cols: 1 },
+                    { label: "Role", type: "select", cols: 1 },
+                    { label: "Bio", type: "textarea", cols: 2 },
+                    { label: "Notifications", type: "toggle", cols: 1 },
                   ],
                 },
-
-                // Form
+                { kind: "form", label: "Form Fallback" },
+              ],
+            },
+            {
+              row: [
                 {
-                  type: "row",
+                  kind: "card",
+                  title: "Enriched Card",
+                  label: "Category label",
+                  meta: ["2h ago", "Owner: AJ"],
+                  badges: ["Production", "Active"],
+                  stats: ["12 Tasks", "3 Comments"],
+                },
+                { kind: "card", label: "Card Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "list", label: "Enriched List", items: ["Batch completed", "Filing generated", "Certificate issued"] },
+                { kind: "list", label: "List Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "tabs", tabs: ["Overview", "Settings", "Analytics", "Logs"], activeTab: 1 },
+                { kind: "tabs", label: "Tabs Fallback" },
+              ],
+            },
+            {
+              row: [
+                { kind: "button", label: "Outline Button" },
+                { kind: "button", mods: ["solid"], label: "Solid Button" },
+                { kind: "avatar", initials: "JD", label: "John Doe" },
+                { kind: "avatar", label: "Avatar Fallback" },
+              ],
+            },
+            {
+              row: [
+                {
+                  label: "Box with nested children",
                   children: [
-                    {
-                      type: "box",
-                      kind: "form",
-                      label: "Enriched Form (2-Col Grid)",
-                      fields: [
-                        { label: "Full Name", type: "text", cols: 2 },
-                        { label: "Work Email", type: "text", cols: 1 },
-                        { label: "Role", type: "select", cols: 1 },
-                        { label: "Bio / Description", type: "textarea", cols: 2 },
-                        { label: "Enable Notifications", type: "toggle", cols: 1 },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "form",
-                      label: "Form Fallback (No enrichment)",
-                    },
+                    { row: [{ kind: "avatar", initials: "TM" }, { kind: "button", label: "Message" }] },
                   ],
                 },
-
-                // Card
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Enriched Card Title",
-                      label: "Secondary Label / Category",
-                      meta: ["Updated 2h ago", "Owner: AJ"],
-                      badges: ["Production", "Active"],
-                      stats: ["✓ 12 Tasks", "3 Comments"],
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      label: "Card Fallback (No enrichment)",
-                    },
-                  ],
-                },
-
-                // List
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "list",
-                      label: "Enriched List Header",
-                      items: [
-                        "Intake battery batch completed",
-                        "Compliance filing generated",
-                        "EPR certificate issued successfully",
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "list",
-                      label: "List Fallback (No enrichment)",
-                    },
-                  ],
-                },
-
-                // Tabs
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "tabs",
-                      tabs: ["Overview", "Settings", "Analytics", "Logs"],
-                      activeTab: 1, // "Settings" active
-                    },
-                    {
-                      type: "box",
-                      kind: "tabs",
-                      label: "Tabs Fallback (No enrichment)",
-                    },
-                  ],
-                },
-
-                // Button and Avatar
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      kind: "button",
-                      label: "Outline Button",
-                    },
-                    {
-                      type: "box",
-                      kind: "button",
-                      mods: ["solid"],
-                      label: "Solid Button",
-                    },
-                    {
-                      type: "box",
-                      kind: "avatar",
-                      initials: "JD",
-                      label: "John Doe",
-                    },
-                    {
-                      type: "box",
-                      kind: "avatar",
-                      label: "Avatar Fallback",
-                    },
-                  ],
-                },
-
-                // Children support and Image scaling
-                {
-                  type: "row",
-                  children: [
-                    {
-                      type: "box",
-                      label: "Box with custom children nesting",
-                      children: [
-                        {
-                          type: "row",
-                          children: [
-                            { type: "box", kind: "avatar", initials: "TM" },
-                            { type: "box", kind: "button", label: "Message" },
-                          ],
-                        },
-                      ],
-                    },
-                    {
-                      type: "box",
-                      kind: "image",
-                      label: "Default Image Scale",
-                    },
-                    {
-                      type: "box",
-                      kind: "image",
-                      mods: ["tall"],
-                      label: "Tall Image Scale",
-                    },
-                    {
-                      type: "box",
-                      kind: "image",
-                      mods: ["taller"],
-                      label: "Taller Image Scale",
-                    },
-                  ],
-                },
+                { kind: "image", label: "Default Image" },
+                { kind: "image", mods: ["tall"], label: "Tall Image" },
+                { kind: "image", mods: ["taller"], label: "Taller Image" },
               ],
             },
           ],

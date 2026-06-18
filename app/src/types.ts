@@ -84,8 +84,14 @@ export interface ChartDataPoint {
 }
 
 export interface WFNode {
-  type: NodeType;
+  type?: NodeType;      // B: omit → inferred as "box" by normalize
   label?: string;
+  // compact shorthands (C, A, G) — expanded by normalize before render
+  row?: WFNode[];       // C: shorthand for {type:"row", children:[...]}
+  col?: WFNode[];       // C: shorthand for {type:"col", children:[...]}
+  $ref?: string;        // A: reference to shared fragment
+  new?: boolean;        // G: marks element added by this feature
+  changed?: boolean;    // G: marks element changed by this feature
   kind?: Kind;
   mods?: Mod[];
   cols?: number;            // grid: --cols
@@ -188,10 +194,20 @@ export interface WFState {
   nodes: WFNode[];
 }
 
+export type ScreenRole = "list" | "detail" | "form" | "dashboard" | "empty" | "error" | "auth" | "settings";
+
 export interface WFScreen {
   id: string;
   name: string;
-  states: WFState[];
+  role?: ScreenRole;       // I: IA role shown as badge on screen tab
+  states?: WFState[];      // undefined when using single-state shorthand (nodes directly on screen)
+  nodes?: WFNode[];        // D: single-state shorthand; normalize wraps into states[]
+}
+
+export interface WFFlow {
+  from: string;   // screenId
+  via: string;    // trigger label
+  to: string;     // screenId or modalId
 }
 
 export interface WFModal {
@@ -204,6 +220,8 @@ export interface WFModel {
   feature: string;
   change?: string;
   designSource?: string;
+  shared?: Record<string, WFNode>;  // A: named fragments, ref via $ref
+  flows?: WFFlow[];                  // H: screen transition map
   screens: WFScreen[];
   modals?: WFModal[];
 }

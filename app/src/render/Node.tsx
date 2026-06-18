@@ -6,7 +6,7 @@ import type { WFNode } from "../types";
 import { registry, fallbackRenderer } from "./registry";
 
 export function Node(props: { node: WFNode & { _id?: string } }) {
-  const Comp = registry[props.node.type] ?? fallbackRenderer;
+  const Comp = (props.node.type ? registry[props.node.type] : undefined) ?? fallbackRenderer;
   return <Comp node={props.node} />;
 }
 

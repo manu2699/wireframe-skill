@@ -52,7 +52,7 @@ export function collectAnnotated(model: WFModel, metaOf: MetaLookup): Annotated[
     }
     for (const c of n.children || []) visit(c);
   };
-  for (const sc of model.screens) for (const st of sc.states) for (const n of st.nodes) visit(n);
+  for (const sc of model.screens) for (const st of sc.states ?? []) for (const n of st.nodes) visit(n);
   for (const md of model.modals || []) for (const n of md.nodes) visit(n);
   return out;
 }

@@ -1,141 +1,140 @@
+// Demonstrates compact JSON syntax: shared $ref, shorthand row/col,
+// omitted type:"box", single-state screens, flows, roles, new/changed flags.
 import type { WFModel } from "../src/types";
 
 const model: WFModel = {
   feature: "News Feed App",
-  change: "Main feed and post creation",
+  change: "Feed + post creation",
   designSource: "guess: social media",
+
+  shared: {
+    left_nav: {
+      type: "nav",
+      side: "left",
+      groups: [
+        {
+          label: "Menu",
+          items: [
+            { text: "Home", goto: "s_feed" },
+            { text: "Explore" },
+            { text: "Notifications", badge: "3" },
+            { text: "Messages" },
+            { text: "Profile" },
+          ],
+        },
+      ],
+    },
+    sidebar_panels: {
+      type: "col",
+      children: [
+        {
+          kind: "card",
+          title: "Trending",
+          backend: "GET /api/trending",
+          ds: "guess: SidebarCard / list",
+          children: [
+            { kind: "list", items: ["#TechNews", "#AI", "Next.js 15", "#Design"] },
+          ],
+        },
+        {
+          kind: "card",
+          title: "Who to follow",
+          backend: "GET /api/suggestions",
+          ds: "guess: SidebarCard / userList",
+          children: [
+            {
+              col: [
+                {
+                  row: [
+                    { kind: "avatar", initials: "JD" },
+                    { col: [{ kind: "heading", level: 5, label: "Jane Doe" }, { kind: "heading", level: 6, label: "@janedoe" }], mods: ["compact"] },
+                    { kind: "button", label: "Follow" },
+                  ],
+                  mods: ["middle"],
+                },
+                {
+                  row: [
+                    { kind: "avatar", initials: "JS" },
+                    { col: [{ kind: "heading", level: 5, label: "John Smith" }, { kind: "heading", level: 6, label: "@johnsmith" }], mods: ["compact"] },
+                    { kind: "button", label: "Follow" },
+                  ],
+                  mods: ["middle"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  flows: [
+    { from: "s_feed", via: "click post card", to: "s_post_detail" },
+    { from: "s_feed", via: "compose card", to: "m_compose" },
+    { from: "s_post_detail", via: "reply input", to: "m_compose" },
+    { from: "s_post_detail", via: "← Back", to: "s_feed" },
+  ],
+
   screens: [
     {
       id: "s_feed",
       name: "Home Feed",
-      states: [
+      role: "list",
+      // single-state shorthand: nodes directly on screen
+      nodes: [
         {
-          id: "default",
-          name: "Default",
-          nodes: [
+          row: [
+            { $ref: "left_nav" },
             {
-              type: "row",
-              children: [
+              col: [
                 {
-                  type: "nav",
-                  side: "left",
-                  groups: [
-                    {
-                      label: "Menu",
-                      items: [
-                        { text: "Home", active: true, goto: "s_feed" },
-                        { text: "Explore" },
-                        { text: "Notifications", badge: "3" },
-                        { text: "Messages" },
-                        { text: "Profile" },
-                      ],
-                    },
-                  ],
+                  kind: "tabs",
+                  tabs: ["For You", "Following"],
+                  activeTab: 0,
+                  new: true,
+                  backend: "GET /api/feed?tab=",
                 },
                 {
-                  type: "col",
-                  children: [
-                    { type: "box", kind: "tabs", tabs: ["For You", "Following"], activeTab: 0 },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "What's happening?",
-                      stats: ["Share a post"],
-                      opens: "m_compose",
-                      backend: "POST /api/posts",
-                      ds: "guess: Card / interactive",
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Alice Smith",
-                      meta: ["@alicesmith", "2h ago"],
-                      label: "Just shipped a new feature for our product! 🚀 It's been a long journey but the results are totally worth it.",
-                      stats: ["12 Likes", "4 Comments"],
-                      goto: "s_post_detail",
-                      backend: "GET /api/feed",
-                      ds: "guess: FeedItem / default",
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Bob Builder",
-                      meta: ["@bob", "4h ago"],
-                      label: "Check out this amazing photo I took during my morning hike.",
-                      children: [{ type: "box", kind: "image", label: "Mountain sunrise" }],
-                      stats: ["45 Likes", "2 Comments", "1 Share"],
-                      backend: "GET /api/feed",
-                      ds: "guess: FeedItem / image",
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Web Dev News",
-                      meta: ["@webdev", "10h ago"],
-                      label: "What's your favorite frontend framework right now?",
-                      children: [{ type: "box", kind: "list", items: ["React", "Vue", "Svelte", "Angular"] }],
-                      stats: ["102 Votes", "15 Comments"],
-                      backend: "GET /api/feed",
-                      ds: "guess: FeedItem / poll",
-                    },
-                  ],
+                  kind: "card",
+                  title: "What's happening?",
+                  stats: ["Share a post"],
+                  opens: "m_compose",
+                  backend: "POST /api/posts",
+                  ds: "guess: Card / interactive",
                 },
                 {
-                  type: "col",
-                  children: [
-                    {
-                      type: "box", kind: "card", title: "Trending", backend: "GET /api/trending", ds: "guess: SidebarCard / list", children: [
-                        { type: "box", kind: "list", items: ["1. #TechNews - 150K posts", "2. #AI - 102K posts", "3. Next.js 15 Release - 50K posts", "4. #DesignSpace - 20K posts"] }
-                      ]
-                    },
-                    {
-                      type: "box", kind: "card", title: "Who to follow", backend: "GET /api/suggestions", ds: "guess: SidebarCard / userList", children: [
-                        {
-                          type: "col", children: [
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "JD" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "Jane Doe" },
-                                    { type: "box", kind: "heading", level: 6, label: "@janedoe" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            },
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "JS" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "John Smith" },
-                                    { type: "box", kind: "heading", level: 6, label: "@johnsmith" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            },
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "TC" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "Tech Corp" },
-                                    { type: "box", kind: "heading", level: 6, label: "@techcorp" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                  ],
+                  kind: "card",
+                  title: "Alice Smith",
+                  meta: ["@alicesmith", "2h ago"],
+                  label: "Shipped a new feature...",
+                  stats: ["12 Likes", "4 Comments"],
+                  goto: "s_post_detail",
+                  backend: "GET /api/feed",
+                  ds: "guess: FeedItem / default",
+                },
+                {
+                  kind: "card",
+                  title: "Bob Builder",
+                  meta: ["@bob", "4h ago"],
+                  label: "Morning hike photo",
+                  children: [{ kind: "image", label: "Mountain sunrise" }],
+                  stats: ["45 Likes", "2 Comments"],
+                  backend: "GET /api/feed",
+                  ds: "guess: FeedItem / image",
+                },
+                {
+                  kind: "card",
+                  title: "Web Dev News",
+                  meta: ["@webdev", "10h ago"],
+                  label: "Favorite frontend framework?",
+                  children: [{ kind: "list", items: ["React", "Vue", "Svelte", "Angular"] }],
+                  stats: ["102 Votes", "15 Comments"],
+                  backend: "GET /api/feed",
+                  ds: "guess: FeedItem / poll",
                 },
               ],
             },
+            { $ref: "sidebar_panels" },
           ],
         },
       ],
@@ -143,150 +142,78 @@ const model: WFModel = {
     {
       id: "s_post_detail",
       name: "Post Detail",
-      states: [
+      role: "detail",
+      nodes: [
         {
-          id: "default",
-          name: "Default",
-          nodes: [
+          row: [
+            { $ref: "left_nav" },
             {
-              type: "row",
-              children: [
+              col: [
                 {
-                  type: "nav",
-                  side: "left",
-                  groups: [
-                    {
-                      label: "Menu",
-                      items: [
-                        { text: "Home", goto: "s_feed" },
-                        { text: "Explore" },
-                        { text: "Notifications", badge: "3" },
-                        { text: "Messages" },
-                        { text: "Profile" },
-                      ],
-                    },
+                  row: [
+                    { kind: "button", label: "← Back", goto: "s_feed", action: "back" },
+                    { kind: "heading", label: "Post", level: 2 },
                   ],
                 },
                 {
-                  type: "col",
-                  children: [
-                    {
-                      type: "row",
-                      children: [
-                        { type: "box", kind: "button", label: "← Back", goto: "s_feed", action: "back" },
-                        { type: "box", kind: "heading", label: "Post", level: 2 }
-                      ]
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Alice Smith",
-                      meta: ["@alicesmith", "2h ago"],
-                      label: "Just shipped a new feature for our product! 🚀 It's been a long journey but the results are totally worth it.",
-                      stats: ["12 Likes", "4 Comments", "3 Reposts"],
-                      backend: "GET /api/posts/:id",
-                      ds: "guess: PostDetail / main",
-                    },
-                    { type: "box", kind: "input", label: "Post your reply", opens: "m_compose", backend: "POST /api/posts/:id/reply", ds: "guess: ReplyInput / default" },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Charlie",
-                      meta: ["@charlie", "1h ago"],
-                      label: "Looks amazing! Can't wait to try it.",
-                      stats: ["2 Likes"],
-                      backend: "GET /api/posts/:id/replies",
-                      ds: "guess: ReplyItem / default",
-                    },
-                    {
-                      type: "box",
-                      kind: "card",
-                      title: "Dave",
-                      meta: ["@dave", "30m ago"],
-                      label: "Is there a changelog available?",
-                      stats: ["1 Like", "1 Comment"],
-                      backend: "GET /api/posts/:id/replies",
-                      ds: "guess: ReplyItem / default",
-                    }
-                  ],
+                  kind: "card",
+                  title: "Alice Smith",
+                  meta: ["@alicesmith", "2h ago"],
+                  label: "Shipped a new feature...",
+                  stats: ["12 Likes", "4 Comments", "3 Reposts"],
+                  backend: "GET /api/posts/:id",
+                  ds: "guess: PostDetail / main",
                 },
                 {
-                  type: "col",
-                  children: [
-                    {
-                      type: "box", kind: "card", title: "Trending", backend: "GET /api/trending", ds: "guess: SidebarCard / list", children: [
-                        { type: "box", kind: "list", items: ["1. #TechNews - 150K posts", "2. #AI - 102K posts", "3. Next.js 15 Release - 50K posts", "4. #DesignSpace - 20K posts"] }
-                      ]
-                    },
-                    {
-                      type: "box", kind: "card", title: "Who to follow", backend: "GET /api/suggestions", ds: "guess: SidebarCard / userList", children: [
-                        {
-                          type: "col", children: [
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "JD" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "Jane Doe" },
-                                    { type: "box", kind: "heading", level: 6, label: "@janedoe" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            },
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "JS" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "John Smith" },
-                                    { type: "box", kind: "heading", level: 6, label: "@johnsmith" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            },
-                            {
-                              type: "row", mods: ["middle"], children: [
-                                { type: "box", kind: "avatar", initials: "TC" },
-                                {
-                                  type: "col", mods: ["compact"], children: [
-                                    { type: "box", kind: "heading", level: 5, label: "Tech Corp" },
-                                    { type: "box", kind: "heading", level: 6, label: "@techcorp" }
-                                  ]
-                                },
-                                { type: "box", kind: "button", label: "Follow" }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                  ],
+                  kind: "input",
+                  label: "Post your reply",
+                  opens: "m_compose",
+                  backend: "POST /api/posts/:id/reply",
+                  ds: "guess: ReplyInput / default",
+                },
+                {
+                  kind: "card",
+                  title: "Charlie",
+                  meta: ["@charlie", "1h ago"],
+                  label: "Looks amazing!",
+                  stats: ["2 Likes"],
+                  backend: "GET /api/posts/:id/replies",
+                  ds: "guess: ReplyItem / default",
+                },
+                {
+                  kind: "card",
+                  title: "Dave",
+                  meta: ["@dave", "30m ago"],
+                  label: "Is there a changelog?",
+                  stats: ["1 Like"],
+                  backend: "GET /api/posts/:id/replies",
+                  ds: "guess: ReplyItem / default",
                 },
               ],
             },
+            { $ref: "sidebar_panels" },
           ],
         },
       ],
     },
   ],
+
   modals: [
     {
       id: "m_compose",
       name: "Create Post",
       nodes: [
         {
-          type: "box",
           kind: "form",
           fields: [
             { label: "Your post", type: "textarea", placeholder: "What's on your mind?" },
-            { label: "Attach Image", type: "upload", uploadLabel: "Select file" }
+            { label: "Attach image", type: "upload", uploadLabel: "Select file" },
           ],
           backend: "POST /api/posts (multipart)",
           ds: "guess: Form / standard",
+          new: true,
         },
-        { type: "box", kind: "button", label: "Post", action: "submit", goto: "s_feed" },
+        { kind: "button", label: "Post", action: "submit", goto: "s_feed" },
       ],
     },
   ],

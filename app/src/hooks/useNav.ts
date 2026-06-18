@@ -41,7 +41,7 @@ function reducer(state: NavState, action: NavAction): NavState {
 export function useNav(model: WFModel) {
   const init = useMemo<NavState>(() => {
     const stateByScreen: Record<string, string> = {};
-    for (const s of model.screens) stateByScreen[s.id] = s.states[0]?.id;
+    for (const s of model.screens) stateByScreen[s.id] = (s.states ?? [])[0]?.id;
     return {
       screenId: model.screens[0]?.id,
       stateByScreen,

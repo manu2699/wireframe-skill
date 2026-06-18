@@ -1,6 +1,6 @@
-// App header: brand, screen tabs, mode toggle, dark-mode toggle.
+// App header: brand, screen tabs, mode toggle, dark-mode toggle, flow toggle.
 
-import type { WFScreen } from "../types";
+import type { WFFlow, WFScreen } from "../types";
 import type { Mode } from "../hooks/useNav";
 import { ScreenTabs } from "./ScreenTabs";
 import { ModeToggle } from "./ModeToggle";
@@ -16,6 +16,9 @@ export function Header(props: {
   onMode: (m: Mode) => void;
   theme: "light" | "dark";
   onTheme: () => void;
+  flows?: WFFlow[];
+  showFlow?: boolean;
+  onToggleFlow?: () => void;
 }) {
   return (
     <header className="z-10 flex h-12 shrink-0 items-stretch border-b border-border bg-card">
@@ -34,6 +37,19 @@ export function Header(props: {
         onGoto={props.onGoto}
       />
       <div className="flex shrink-0 items-center gap-2 border-l border-border px-3">
+        {props.flows && props.flows.length > 0 && (
+          <button
+            onClick={props.onToggleFlow}
+            className={
+              "rounded border px-2 py-0.5 text-[11px] font-medium transition-colors " +
+              (props.showFlow
+                ? "border-foreground bg-foreground text-background"
+                : "border-border text-muted-foreground hover:text-foreground")
+            }
+          >
+            Flow
+          </button>
+        )}
         <ModeToggle mode={props.mode} onMode={props.onMode} />
         {/* <ThemeToggle theme={props.theme} onToggle={props.onTheme} /> */}
       </div>

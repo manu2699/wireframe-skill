@@ -13,6 +13,7 @@ import "../styles/index.css";
 import "./dev.css";
 import { App } from "../src/App";
 import { stampModel } from "../src/model/stamp";
+import { normalizeModel } from "../src/model/normalize";
 import { memoryAdapter } from "../src/ports/storage";
 import { createNoopTransport } from "../src/ports/transport";
 import { examples, exampleList, defaultExample } from "../examples";
@@ -34,7 +35,7 @@ function Dev() {
 
   // Fresh model identity + meta + storage per example, so ids and comments never
   // leak across examples. `key={slug}` remounts the App on switch.
-  const model = examples[slug];
+  const model = normalizeModel(examples[slug]);
   const meta = stampModel(model);
 
   return (

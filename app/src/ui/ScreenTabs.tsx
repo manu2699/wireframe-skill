@@ -28,6 +28,9 @@ export function ScreenTabs(props: {
             )}
           >
             {s.name}
+            {s.role && (
+              <span className="wf-role-badge">{s.role}</span>
+            )}
             {count > 0 && (
               <span className="ml-1.5 inline-flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-wfc-accent px-1 text-[9.5px] font-bold text-white">
                 {count}

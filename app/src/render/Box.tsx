@@ -112,6 +112,8 @@ export function Box(props: { node: BoxNode }) {
         onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
       >
         <Pin id={n._id} />
+        {n.new && <span className="wf-new-badge">✦ new</span>}
+        {n.changed && <span className="wf-changed-badge">~ changed</span>}
         {n.children.map((child, idx) => (
           <Node key={child._id || idx} node={child} />
         ))}
@@ -133,6 +135,8 @@ export function Box(props: { node: BoxNode }) {
       onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
     >
       <Pin id={n._id} />
+      {n.new && <span className="wf-new-badge">✦ new</span>}
+      {n.changed && <span className="wf-changed-badge">~ changed</span>}
       <Glyph kind={n.kind} />
       {n.label && <span className="wf-box-label">{n.label}</span>}
       <FlowTag goto={n.goto} opens={n.opens} action={n.action} />

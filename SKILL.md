@@ -73,13 +73,28 @@ The **only thing you author** is the `#wf-model` JSON. Its shape:
   "feature": "Recycler Overview",
   "change": "one-line backend change",         // shown in the review sidebar
   "designSource": "from DESIGN.md | detected: MUI | guess: generic primitives",
-  "screens": [
-    { "id": "s_overview", "name": "Overview", "states": [
-      { "id": "default", "name": "Default", "nodes": [ /* node tree */ ] }
-      // add more states ONLY if the screen has more than one
-    ]}
+  "shared": {                                   // A: named fragments; ref with {"$ref":"key"}
+    "left_nav": { "type":"nav", "side":"left", "groups":[...] }
+  },
+  "flows": [                                    // H: screen flow map (clickable strip in UI)
+    { "from":"s_list", "via":"click row", "to":"s_detail" },
+    { "from":"s_detail", "via":"Edit", "to":"s_edit" }
   ],
-  "modals": [                                    // optional; opened via opens:"<id>"
+  "screens": [
+    {
+      "id": "s_overview", "name": "Overview",
+      "role": "list",                           // I: IA role badge on tab (optional)
+      "nodes": [ /* node tree */ ]              // D: single-state shorthand — omit "states" wrapper
+    },
+    {
+      "id": "s_detail", "name": "Detail",
+      "states": [                               // use states[] only when screen has >1 state
+        { "id": "default", "name": "Default", "nodes": [ /* node tree */ ] },
+        { "id": "empty",   "name": "Empty",   "nodes": [ /* node tree */ ] }
+      ]
+    }
+  ],
+  "modals": [                                   // optional; opened via opens:"<id>"
     { "id": "m_issue", "name": "Issue certificate", "nodes": [ /* node tree */ ] }
   ]
 }
@@ -91,13 +106,47 @@ Use stable, meaningful `id`s for screens and modals — `goto`/`opens` reference
 
 Every `nodes` array holds a tree of **nodes**. Node `type` is a closed structural set; meaning lives in free-text fields.
 
+#### Compact syntax — use this to cut ~35–40% of output tokens
+
+The renderer expands these shorthands automatically:
+
+| Shorthand | Expands to | Savings |
+|-----------|-----------|---------|
+| Omit `type` — if node has `kind` or `label` | `type:"box"` inferred | ~5–8% |
+| `{"row":[...]}` | `{type:"row", children:[...]}` | ~3–5% |
+| `{"col":[...]}` | `{type:"col", children:[...]}` | ~3–5% |
+| `{"$ref":"key"}` | shared fragment expanded in-place | ~25–40% on repeated nav/sidebar |
+| Screen with `nodes:[...]` (no `states`) | `states:[{id:"default",name:"Default",nodes:[...]}]` | ~2–3% |
+
+**Compact example vs. verbose:**
+```jsonc
+// verbose (old)
+{"type":"row","children":[{"type":"box","kind":"button","label":"Save"}]}
+
+// compact (preferred)
+{"row":[{"kind":"button","label":"Save"}]}
+```
+
+**`$ref` example** — define nav once, reference on every screen:
+```jsonc
+"shared": {
+  "left_nav": {"type":"nav","side":"left","groups":[{"items":[{"text":"Home","goto":"s_home"}]}]}
+},
+// on each screen's nodes:
+{"row":[{"$ref":"left_nav"}, { ...main content... }]}
+```
+
+**Placeholder discipline (E):** enrichment content (items, messages, labels) — max 5 words. Use generic text, not realistic copy. The structure is the wireframe, not the content.
+
+**Backend annotation required (F):** every node that is **new or changed** by the feature MUST carry a `backend` field. Layout containers and unchanged elements can omit it.
+
 **Structural types:**
 
 | type    | purpose                                   | key fields                                  |
 |---------|-------------------------------------------|---------------------------------------------|
-| `box`   | the atom (a labeled region)               | `label`, `kind`, `mods`, `backend`, `ds`, flow |
-| `row`   | horizontal flex row                       | `children`                                  |
-| `col`   | vertical stack (use inside a row)         | `children`                                  |
+| `box`   | the atom (a labeled region)               | `label`, `kind`, `mods`, `backend`, `ds`, flow, `new`, `changed` |
+| `row`   | horizontal flex row — shorthand: `{"row":[...]}` | `children`                         |
+| `col`   | vertical stack — shorthand: `{"col":[...]}`      | `children`                         |
 | `grid`  | N-column grid (cards/tiles)               | `cols`, `children`                          |
 | `table` | a table                                   | `headers[]`, `rows[][]`, `backend`, `ds`    |
 | `nav`   | enumerated navigation (IA)                | `side:"left"\|"top"`, `groups[]`            |
@@ -130,8 +179,10 @@ Put these on nav items and on `kind:"button"` boxes (or any box). A small afford
 **Annotations — the high-value mapping.** Every box that is **new or modified by the change** carries both:
 - `backend` — the concrete backend element: new/changed column, endpoint, field, event, permission. Source from the spec's API/field sections, else from what the user described. Be specific. If there's genuinely no backend, describe behavior ("saves refund reason") or omit — don't invent endpoint names.
 - `ds` — the design-system mapping: component name + variant/size from the user's real vocabulary (below). When nothing fits, prefix with `guess: ` (e.g. `"guess: Badge / status"`); the app renders guesses in amber on hover. Never pass a guess off as confirmed.
+- `new: true` — (G) marks element as newly added by this feature. Renders a `✦ new` badge on the node in the wireframe.
+- `changed: true` — (G) marks element as modified by this feature. Renders a `~ changed` badge.
 
-Pure layout context (nav containers, unchanged sections) gets no `backend`/`ds` — keep the signal on what changed.
+Pure layout context (nav containers, unchanged sections) gets no annotations — keep the signal on what changed.
 
 **Table example** — real column names in `headers`, placeholder body rows:
 

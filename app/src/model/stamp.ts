@@ -48,7 +48,7 @@ export function stampModel(model: WFModel): Map<string, IdMeta> {
   };
 
   for (const sc of model.screens) {
-    for (const st of sc.states) {
+    for (const st of sc.states ?? []) {
       for (const n of st.nodes) stampNode(n, sc.name, st.name);
     }
   }

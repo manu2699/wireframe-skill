@@ -15,9 +15,9 @@ export function Canvas(props: {
   if (!sc) return <div className="min-w-0 flex-1 overflow-hidden" />;
   return (
     <div className="wf-canvas-shell flex min-w-0 flex-1 flex-col overflow-hidden">
-      {sc.states.length > 1 && (
+      {(sc.states ?? []).length > 1 && (
         <div className="flex flex-shrink-0 flex-wrap gap-1.5 border-b border-border px-7 py-4" role="tablist">
-          {sc.states.map((st) => {
+          {(sc.states ?? []).map((st) => {
             const active = props.state?.id === st.id;
             return (
               <button

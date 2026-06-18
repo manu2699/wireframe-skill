@@ -19,6 +19,7 @@ import { Canvas } from "./ui/Canvas";
 import { ReviewSidebar } from "./ui/ReviewSidebar";
 import { Modal } from "./ui/Modal";
 import { CommentPopover } from "./ui/CommentPopover";
+import { FlowMap } from "./ui/FlowMap";
 import { TooltipProvider } from "./components/ui/tooltip";
 
 const REVIEW_COLLAPSE_KEY = "wfc:review-collapsed";
@@ -46,6 +47,7 @@ export function App(props: {
   const { theme, toggle: toggleTheme } = useTheme();
 
   const [reviewCollapsed, setReviewCollapsed] = useState(readReviewCollapsed);
+  const [showFlow, setShowFlow] = useState(false);
   useEffect(() => {
     try {
       localStorage.setItem(REVIEW_COLLAPSE_KEY, reviewCollapsed ? "1" : "0");
@@ -69,8 +71,8 @@ export function App(props: {
   );
   const activeState = useMemo(() => {
     if (!activeScreen) return undefined;
-    return activeScreen.states.find((st) => st.id === nav.stateByScreen[activeScreen.id])
-      || activeScreen.states[0];
+    return (activeScreen.states ?? []).find((st) => st.id === nav.stateByScreen[activeScreen.id])
+      || (activeScreen.states ?? [])[0];
   }, [activeScreen, nav.stateByScreen]);
   const activeModal = useMemo(
     () => (model.modals || []).find((m) => m.id === nav.modalId),
@@ -96,7 +98,11 @@ export function App(props: {
           badgeCount={badgeCount} onGoto={gotoScreen}
           mode={nav.mode} onMode={setMode}
           theme={theme} onTheme={toggleTheme}
+          flows={model.flows} showFlow={showFlow} onToggleFlow={() => setShowFlow((v) => !v)}
         />
+        {showFlow && model.flows && model.flows.length > 0 && (
+          <FlowMap flows={model.flows} onGoto={gotoScreen} />
+        )}
 
         <div className="flex min-h-0 flex-1">
           <Canvas screen={activeScreen} state={activeState} onSetState={setState} actions={actions} />

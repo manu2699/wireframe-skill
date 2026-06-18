@@ -256,6 +256,102 @@
     flex: 0 0 auto;
   }
 
+  /* ── new / changed node badges (G) ── */
+  .wf-new-badge,
+  .wf-changed-badge {
+    position: absolute;
+    top: 3px;
+    right: 20px;
+    font-family: var(--wf-font);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 1px 4px;
+    border-radius: 2px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 4;
+  }
+  .wf-new-badge {
+    background: var(--wf-ink);
+    color: #fff;
+  }
+  .wf-changed-badge {
+    background: transparent;
+    color: var(--wf-ink);
+    border: 1px solid var(--wf-ink);
+  }
+
+  /* ── screen role badge (I) ── */
+  .wf-role-badge {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 8.5px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--wf-muted);
+    background: var(--wf-fill);
+    border: 1px solid var(--wf-c-line);
+    border-radius: 3px;
+    padding: 1px 4px;
+    vertical-align: middle;
+    text-transform: lowercase;
+    font-family: var(--wf-font);
+  }
+
+  /* ── flow map strip (H) ── */
+  .wf-flowmap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    font-family: var(--wf-font);
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .wf-flowmap-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .wf-flowmap-rows {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+  }
+  .wf-flowmap-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .wf-flowmap-node {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-family: var(--wf-font);
+    color: var(--foreground);
+    cursor: pointer;
+  }
+  .wf-flowmap-node:hover {
+    background: var(--accent);
+  }
+  .wf-flowmap-arrow {
+    color: var(--muted-foreground);
+  }
+  .wf-flowmap-via {
+    color: var(--muted-foreground);
+    font-style: italic;
+    font-size: 10.5px;
+  }
+
   /* Nested box: quieter border */
   .wf-box .wf-box {
     border-style: solid;
