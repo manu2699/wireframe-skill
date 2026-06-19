@@ -48,6 +48,8 @@ export function createLiveTransport(): Transport {
   };
   (window as any).__wfOnConnect = () => set(true);
   (window as any).__wfOnDisconnect = () => set(false);
+  // Sync in case WS already opened before React mounted (race condition).
+  set(!!(window as any).__wfConnected);
 
   return {
     isConnected: () => connected,

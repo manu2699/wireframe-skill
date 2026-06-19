@@ -125,12 +125,25 @@ function wsBootstrap(slug) {
           }
           bLog("INFO", "server log history loaded", { count: msg.entries.length });
         }
-      } catch (ex) {}
+      } catch (ex) { bLog("ERR", "onmessage error", { error: ex && ex.message }); }
     };
   }
   connect();
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && !ready) { delay = 500; bLog("INFO", "tab visible, reset backoff"); }
+  });
+  // Replay all logs on load so they appear in DevTools even if opened after page load.
+  window.addEventListener("load", function () {
+    console.groupCollapsed("[wf] boot log replay (" + logs.length + " entries) — type __wfDumpLogs() to copy all");
+    for (var i = 0; i < logs.length; i++) {
+      var le = logs[i];
+      var m = le.t + " " + (le.src === "server" ? "S" : "B") + " [" + le.level + "] [" + le.mod + "] " + le.msg;
+      if (le.extra) m += " " + JSON.stringify(le.extra);
+      if (le.level === "ERR") console.error(m);
+      else if (le.level === "WARN") console.warn(m);
+      else console.log(m);
+    }
+    console.groupEnd();
   });
   window.__wfSend = function (block) {
     var msg = JSON.stringify({ feature: slug, block: block });
