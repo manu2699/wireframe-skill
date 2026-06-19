@@ -17,7 +17,10 @@ export const TOOLS = [
       type: "object",
       properties: {
         feature: { type: "string", description: "Feature name or slug." },
-        model:   { type: "object", description: "The full WFModel JSON object (with a \"screens\" array)." },
+        model: {
+          description: "The full WFModel JSON object (with a \"screens\" array). May be passed as a JSON object or as a JSON-encoded string — use the string form for large/complex models to avoid JSON escaping issues.",
+          oneOf: [{ type: "object" }, { type: "string" }],
+        },
       },
       required: ["feature", "model"],
     },
@@ -56,7 +59,10 @@ export const TOOLS = [
       type: "object",
       properties: {
         feature: { type: "string" },
-        model:   { type: "object", description: "The full updated WFModel JSON object." },
+        model: {
+          description: "The full updated WFModel JSON object. May be passed as a JSON object or as a JSON-encoded string — use the string form for large/complex models to avoid JSON escaping issues.",
+          oneOf: [{ type: "object" }, { type: "string" }],
+        },
       },
       required: ["feature", "model"],
     },

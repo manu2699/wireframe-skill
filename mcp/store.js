@@ -47,6 +47,14 @@ export function setModel(slug, model) {
  */
 export function validateModel(raw) {
   let model = raw;
+  // Accept model passed as a JSON string (alternative encoding for large/complex models).
+  if (typeof model === "string") {
+    try {
+      model = JSON.parse(model);
+    } catch (e) {
+      return { ok: false, error: `model string could not be parsed as JSON: ${e.message}` };
+    }
+  }
   if (model && !Array.isArray(model.screens) && model.model && Array.isArray(model.model.screens)) {
     warn("store", "model nested under 'model' key — unwrapping");
     model = model.model;

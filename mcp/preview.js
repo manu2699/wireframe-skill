@@ -22,8 +22,8 @@ const CACHED_JS = fs.readFileSync(path.join(ASSETS_DIR, "dist", "wireframe-app.j
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
-  ".css":  "text/css; charset=utf-8",
-  ".js":   "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
 };
 
 let httpServer = null;
@@ -67,7 +67,9 @@ function sseBootstrap(slug) {
       return line;
     }).join("\\n");
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt).then(function(){ console.log("[wf] " + logs.length + " log entries copied to clipboard"); });
+      navigator.clipboard.writeText(txt)
+        .then(function(){ console.log("[wf] " + logs.length + " log entries copied to clipboard"); })
+        .catch(function(e){ console.warn("[wf] clipboard write failed:", e && e.message); });
     }
     return txt;
   };
@@ -76,7 +78,11 @@ function sseBootstrap(slug) {
     var el = document.getElementById("wf-model");
     if (el && navigator.clipboard && navigator.clipboard.writeText) {
       var txt = el.textContent || "";
-      navigator.clipboard.writeText(txt).then(function(){ console.log("[wf] model copied to clipboard"); });
+      console.log("Model: \\n", txt);
+      console.log("\\n")
+      navigator.clipboard.writeText(txt)
+        .then(function(){ console.log("[wf] model copied to clipboard"); })
+        .catch(function(e){ console.warn("[wf] clipboard write failed:", e && e.message); });
       return "Model copied to clipboard!";
     }
     return "Could not copy model (no element or no clipboard API)";
@@ -341,7 +347,7 @@ export function openInBrowser(url) {
   if (process.env.WF_NO_OPEN) return;
   const cmd =
     process.platform === "darwin" ? `open "${url}"` :
-    process.platform === "win32"  ? `start "" "${url}"` :
-                                    `xdg-open "${url}"`;
-  exec(cmd, () => {});
+      process.platform === "win32" ? `start "" "${url}"` :
+        `xdg-open "${url}"`;
+  exec(cmd, () => { });
 }
