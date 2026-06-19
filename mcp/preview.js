@@ -1,5 +1,5 @@
 /**
- * PreviewServer — HTTP + WebSocket server for browser preview.
+ * PreviewServer — HTTP + SSE server for browser preview.
  *
  * Serves wireframes dynamically from in-memory models (no disk I/O).
  * Frozen assets (CSS, JS) are cached from the package's assets/ directory.
@@ -10,7 +10,6 @@ import path from "path";
 import http from "http";
 import { exec } from "child_process";
 import { fileURLToPath } from "url";
-import { WebSocketServer } from "ws";
 import * as store from "./store.js";
 import { info, debug, warn, onLog, getAll } from "./log.js";
 
@@ -28,19 +27,18 @@ const MIME = {
 };
 
 let httpServer = null;
-let wss = null;
 let baseUrl = null;
 
 export function getBaseUrl() {
   return baseUrl;
 }
 
-function wsBootstrap(slug) {
+function sseBootstrap(slug) {
   return `
 <script>
 (function () {
   var slug = ${JSON.stringify(slug)};
-  var ws, ready = false, delay = 500;
+  var es, ready = false;
   var BKEY = 'wf-bl-' + slug;
   function getLs() { try { return JSON.parse(localStorage.getItem(BKEY)||'[]'); } catch(e){ return []; } }
   function setLs(b) { try { localStorage.setItem(BKEY, JSON.stringify(b)); } catch(e){} }
@@ -60,7 +58,7 @@ function wsBootstrap(slug) {
     else if (level === "WARN") console.warn(consoleMsg);
     else console.log(consoleMsg);
   }
-  function bLog(level, msg, extra) { logPush("browser", level, "ws", msg, extra); }
+  function bLog(level, msg, extra) { logPush("browser", level, "sse", msg, extra); }
 
   window.__wfDumpLogs = function () {
     var txt = logs.map(function (e) {
@@ -91,29 +89,59 @@ function wsBootstrap(slug) {
     if (window.__wfOnConnect && v) window.__wfOnConnect();
     if (window.__wfOnDisconnect && !v) window.__wfOnDisconnect();
   }
+
+  function sendBlock(block, cb) {
+    fetch("/" + encodeURIComponent(slug) + "/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ block: block })
+    })
+    .then(function (res) {
+      if (res.ok) {
+        if (cb) cb(null);
+      } else {
+        if (cb) cb(new Error("status: " + res.status));
+      }
+    })
+    .catch(function (err) {
+      if (cb) cb(err);
+    });
+  }
+
+  function drainBacklog() {
+    var bl = getLs();
+    if (!bl.length) return;
+    var block = bl.shift();
+    setLs(bl);
+    bLog("INFO", "draining backlog block", { len: block.length });
+    sendBlock(block, function (err) {
+      if (err) {
+        bLog("ERR", "failed to drain block, returning to backlog", { error: err.message });
+        setLs([block].concat(getLs()));
+      } else {
+        bLog("INFO", "backlog block drained successfully");
+        drainBacklog();
+      }
+    });
+  }
+
   function connect() {
     bLog("INFO", "connecting", { host: location.host, slug: slug });
     try {
-      var proto = location.protocol === "https:" ? "wss:" : "ws:";
-      ws = new WebSocket(proto + "//" + location.host + "/ws?feature=" + encodeURIComponent(slug));
-    } catch (e) { bLog("ERR", "WebSocket constructor failed", { error: e.message }); return; }
-    ws.onopen = function () {
+      es = new EventSource("/" + encodeURIComponent(slug) + "/events");
+    } catch (e) { bLog("ERR", "EventSource constructor failed", { error: e.message }); return; }
+    
+    es.onopen = function () {
       ready = true;
-      delay = 500;
-      var bl = getLs(); localStorage.removeItem(BKEY);
-      if (bl.length) bLog("INFO", "draining backlog", { count: bl.length });
-      while (bl.length) ws.send(bl.shift());
       setConnected(true);
+      drainBacklog();
     };
-    ws.onclose = function (ev) {
+    es.onerror = function (ev) {
       ready = false;
-      bLog("WARN", "ws closed", { code: ev.code, reason: ev.reason, nextRetry: delay });
       setConnected(false);
-      setTimeout(connect, delay);
-      delay = Math.min(delay * 2, 30000);
+      bLog("WARN", "EventSource closed or failed, auto-retrying");
     };
-    ws.onerror = function () { bLog("ERR", "ws error"); try { ws.close(); } catch (e) {} };
-    ws.onmessage = function (e) {
+    es.onmessage = function (e) {
       try {
         var msg = JSON.parse(e.data);
         if (msg.type === "reload") { bLog("INFO", "reload signal"); window.location.reload(); }
@@ -128,10 +156,17 @@ function wsBootstrap(slug) {
       } catch (ex) { bLog("ERR", "onmessage error", { error: ex && ex.message }); }
     };
   }
+
   connect();
+
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden && !ready) { delay = 500; bLog("INFO", "tab visible, reset backoff"); }
+    if (!document.hidden && (!es || es.readyState === 2)) {
+      bLog("INFO", "tab visible, reconnecting SSE");
+      try { if (es) es.close(); } catch(e){}
+      connect();
+    }
   });
+
   // Replay all logs on load so they appear in DevTools even if opened after page load.
   window.addEventListener("load", function () {
     console.groupCollapsed("[wf] boot log replay (" + logs.length + " entries) — type __wfDumpLogs() to copy all");
@@ -145,10 +180,21 @@ function wsBootstrap(slug) {
     }
     console.groupEnd();
   });
+
   window.__wfSend = function (block) {
-    var msg = JSON.stringify({ feature: slug, block: block });
-    if (ready) { ws.send(msg); bLog("INFO", "block sent", { len: block.length }); }
-    else { setLs([].concat(getLs(), [msg])); bLog("WARN", "block queued to localStorage", { len: block.length }); }
+    if (ready) {
+      sendBlock(block, function (err) {
+        if (err) {
+          bLog("WARN", "failed to send block, queueing to localStorage", { error: err.message });
+          setLs([].concat(getLs(), [block]));
+        } else {
+          bLog("INFO", "block sent", { len: block.length });
+        }
+      });
+    } else {
+      setLs([].concat(getLs(), [block]));
+      bLog("WARN", "block queued to localStorage (disconnected)", { len: block.length });
+    }
     var t = document.getElementById("__wf-sent");
     if (!t) {
       t = document.createElement("div");
@@ -165,7 +211,7 @@ function wsBootstrap(slug) {
     window.__wfSentT = setTimeout(function () { t.style.opacity = "0"; }, 1800);
   };
 })();
-<\\/script>`;
+<\/script>`;
 }
 
 function composeHtml(slug) {
@@ -176,7 +222,7 @@ function composeHtml(slug) {
     /(<script[^>]+id="wf-model"[^>]*>)([\s\S]*?)(<\/script>)/,
     `$1\n${JSON.stringify(f.model, null, 2)}\n$3`,
   );
-  const boot = wsBootstrap(slug);
+  const boot = sseBootstrap(slug);
   html = html.includes("</body>")
     ? html.replace("</body>", boot + "\n</body>")
     : html + boot;
@@ -187,9 +233,58 @@ function handleRequest(req, res) {
   const url = new URL(req.url, "http://localhost");
   const parts = url.pathname.split("/").filter(Boolean);
   const slug = parts[0];
-  const f = slug && store.get(slug);
-  debug("http", `${req.method} ${url.pathname}`, { slug, hasModel: !!(f && f.model) });
+  const file = parts[1] || "wireframe.html";
+  debug("http", `${req.method} ${url.pathname}`, { slug, hasModel: !!(slug && store.get(slug).model) });
 
+  if (!slug) {
+    res.writeHead(404).end("Not found");
+    return;
+  }
+
+  if (file === "events" && req.method === "GET") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive"
+    });
+    res.write("data: " + JSON.stringify({ type: "connected" }) + "\n\n");
+
+    const history = getAll();
+    if (history.length) {
+      res.write("data: " + JSON.stringify({ type: "log-history", entries: history }) + "\n\n");
+    }
+
+    const f = store.get(slug);
+    f.clients.add(res);
+
+    req.on("close", () => {
+      f.clients.delete(res);
+      info("sse", `client disconnected`, { slug, clientsLeft: f.clients.size });
+    });
+    info("sse", `client connected`, { slug, totalClients: f.clients.size });
+    return;
+  }
+
+  if (file === "feedback" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => { body += chunk; });
+    req.on("end", () => {
+      try {
+        const parsed = JSON.parse(body);
+        if (typeof parsed.block === "string") {
+          store.ingestBlock(slug, parsed.block);
+          res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ ok: true }));
+        } else {
+          res.writeHead(400).end("Missing block");
+        }
+      } catch (err) {
+        res.writeHead(400).end("Invalid JSON");
+      }
+    });
+    return;
+  }
+
+  const f = store.get(slug);
   if (!f || !f.model) {
     const waiting = `<!doctype html><html><head><meta charset="utf-8"><title>Wireframe</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#71717a;background:#f4f4f5}
@@ -201,8 +296,6 @@ function handleRequest(req, res) {
     res.writeHead(200, { "content-type": MIME[".html"] }).end(waiting);
     return;
   }
-
-  const file = parts[1] || "wireframe.html";
 
   if (file === "wireframe.html") {
     const html = composeHtml(slug);
@@ -221,60 +314,17 @@ function handleRequest(req, res) {
   res.writeHead(404).end("Not found");
 }
 
-function handleWsConnection(socket, req) {
-  socket.isAlive = true;
-  socket.on("pong", () => { socket.isAlive = true; });
-
-  const slug = new URL(req.url, "http://localhost").searchParams.get("feature");
-  info("ws", `client connected`, { slug, totalClients: wss.clients.size });
-
-  try {
-    const history = getAll();
-    if (history.length) socket.send(JSON.stringify({ type: "log-history", entries: history }));
-  } catch (_) {}
-
-  if (slug) {
-    const f = store.get(slug);
-    f.sockets.add(socket);
-    socket.on("close", (code, reason) => {
-      f.sockets.delete(socket);
-      info("ws", `client disconnected`, { slug, code, socketsLeft: f.sockets.size });
-    });
-  }
-  socket.on("message", (data) => {
-    let parsed;
-    try { parsed = JSON.parse(data.toString()); } catch (_) {
-      warn("ws", "unparseable message", data.toString().slice(0, 200));
-      return;
-    }
-    const fslug = parsed.feature || slug;
-    debug("ws", "message received", { feature: fslug, hasBlock: typeof parsed.block === "string" });
-    if (fslug && typeof parsed.block === "string") store.ingestBlock(fslug, parsed.block);
-  });
-}
-
 export function start() {
   if (httpServer) return Promise.resolve();
   return new Promise((resolve) => {
     httpServer = http.createServer(handleRequest);
-    wss = new WebSocketServer({ server: httpServer, path: "/ws" });
-    wss.on("connection", handleWsConnection);
 
     onLog((entry) => {
-      const payload = JSON.stringify({ type: "log", entry });
-      wss.clients.forEach((c) => {
-        try { if (c.readyState === 1) c.send(payload); } catch (_) {}
-      });
+      store.broadcastLog(entry);
     });
 
     const heartbeat = setInterval(() => {
-      let terminated = 0;
-      wss.clients.forEach((ws) => {
-        if (!ws.isAlive) { ws.terminate(); terminated++; return; }
-        ws.isAlive = false;
-        ws.ping();
-      });
-      if (terminated) info("ws", `heartbeat terminated ${terminated} dead client(s)`, { remaining: wss.clients.size - terminated });
+      store.keepAlive();
     }, 25000);
     httpServer.on("close", () => clearInterval(heartbeat));
 

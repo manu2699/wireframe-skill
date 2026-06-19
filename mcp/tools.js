@@ -49,7 +49,7 @@ export const TOOLS = [
     name: "wireframe_update",
     description:
       "Push a revised wireframe model to the already-open browser tab. " +
-      "Updates the in-memory model and sends a reload signal over WebSocket " +
+      "Updates the in-memory model and sends a reload signal over SSE " +
       "so the browser refreshes automatically. " +
       "Call after applying feedback from wireframe_wait_feedback to close the iteration loop.",
     inputSchema: {
@@ -93,8 +93,25 @@ async function handleOpen(slug, args) {
   );
 }
 
-async function handleWaitFeedback(slug, args) {
+async function handleWaitFeedback(slug, args, context = {}) {
   const timeoutMs = typeof args.timeoutMs === "number" ? args.timeoutMs : 3600000;
+  const { server, meta } = context;
+
+  if (server && meta?.progressToken) {
+    try {
+      const f = store.get(slug);
+      const url = f.model && preview.getBaseUrl() ? `${preview.getBaseUrl()}/${slug}/wireframe.html` : "";
+      server.notification({
+        method: "notifications/progress",
+        params: {
+          progressToken: meta.progressToken,
+          progress: 0,
+          message: `Waiting for user feedback — wireframe open at ${url}`
+        }
+      });
+    } catch (_) {}
+  }
+
   const block = await store.waitForBlock(slug, timeoutMs);
   return reply(
     block ||
@@ -116,7 +133,7 @@ function handleUpdate(slug, args) {
 
   store.setModel(slug, result.model);
   store.broadcast(slug, { type: "reload" });
-  const count = f.sockets.size;
+  const count = f.clients.size;
   return reply(`Model updated. Reload signal sent to ${count} connected client(s). Browser will refresh automatically.`);
 }
 
@@ -126,12 +143,12 @@ function handleStatus(slug) {
   return reply(JSON.stringify({ approved: f.approved, openComments: f.openComments, url }, null, 2));
 }
 
-export async function handleTool(name, args) {
+export async function handleTool(name, args, context = {}) {
   const slug = store.slugify(args.feature);
 
   switch (name) {
     case "wireframe_open":          return handleOpen(slug, args);
-    case "wireframe_wait_feedback": return handleWaitFeedback(slug, args);
+    case "wireframe_wait_feedback": return handleWaitFeedback(slug, args, context);
     case "wireframe_poll_feedback": return handlePollFeedback(slug);
     case "wireframe_update":        return handleUpdate(slug, args);
     case "wireframe_status":        return handleStatus(slug);

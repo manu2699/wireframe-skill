@@ -1,13 +1,12 @@
 // End-to-end smoke test for the wireframe-preview MCP server.
 // Spins the server over stdio, opens a wireframe with an in-memory model,
-// simulates the browser pushing a feedback block over WS, and asserts the
+// simulates the browser pushing a feedback block over HTTP POST, and asserts the
 // agent receives it via MCP — no paste, no disk.
 import assert from "assert";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { WebSocket } from "ws";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -55,7 +54,7 @@ const url = open.content[0].text.match(/http:\/\/[^\s]+/)[0];
 assert.ok(url.includes("/test-feature/wireframe.html"), "url slug");
 console.log("✓ wireframe_open →", url);
 
-// 3. served HTML carries WS bootstrap + inlined model + app bundle
+// 3. served HTML carries SSE bootstrap + inlined model + app bundle
 const html = await (await fetch(url)).text();
 assert.ok(html.includes("window.__wfSend"), "injected WS sender present");
 assert.ok(html.includes('id="wf-model"'), "inlined model present");
@@ -74,9 +73,21 @@ assert.strictEqual(jsRes.status, 200, "JS served 200");
 assert.ok((await jsRes.text()).length > 1000, "JS non-empty");
 console.log("✓ wireframe.css + wireframe-app.js served from package");
 
-// 4. simulate browser pushing a feedback block over WS
+// 4. simulate browser pushing a feedback block over HTTP POST and SSE connection
 const origin = url.slice(0, url.indexOf("/test-feature"));
-const wsUrl = origin.replace("http://", "ws://") + "/ws?feature=test-feature";
+
+// 4b. Verify SSE connection handshake
+const sseRes = await fetch(`${origin}/test-feature/events`);
+assert.strictEqual(sseRes.status, 200, "SSE status");
+assert.strictEqual(sseRes.headers.get("content-type"), "text/event-stream", "SSE content-type");
+const reader = sseRes.body.getReader();
+const { value } = await reader.read();
+const chunkStr = new TextDecoder().decode(value);
+assert.ok(chunkStr.includes('"type":"connected"'), "SSE connected event");
+// Cancel to avoid hanging the test
+await reader.cancel();
+console.log("✓ SSE connection handshake verified");
+
 const feedbackBlock = [
   "===== WIREFRAME FEEDBACK: Test Feature =====",
   "Apply ONLY these changes.",
@@ -87,13 +98,14 @@ const feedbackBlock = [
   "===== END FEEDBACK (1 item) =====",
 ].join("\n");
 
-const ws = new WebSocket(wsUrl);
-await new Promise((res, rej) => { ws.on("open", res); ws.on("error", rej); });
-
-// 5. agent waits; browser sends; agent receives the identical block
+// 5. agent waits; browser sends feedback via POST; agent receives the identical block
 const waitP = client.callTool({ name: "wireframe_wait_feedback", arguments: { feature: "Test Feature", timeoutMs: 5000 } });
 await new Promise((r) => setTimeout(r, 100));
-ws.send(JSON.stringify({ feature: "test-feature", block: feedbackBlock }));
+await fetch(`${origin}/test-feature/feedback`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ block: feedbackBlock }),
+});
 const got = (await waitP).content[0].text;
 assert.strictEqual(got, feedbackBlock, "received block matches sent block");
 console.log("✓ wireframe_wait_feedback returned the exact block (no paste)");
@@ -123,7 +135,11 @@ const approveBlock = [
   "No open comments.",
   "===== END APPROVAL (1 mapped boxes, 0 open comments) =====",
 ].join("\n");
-ws.send(JSON.stringify({ feature: "test-feature", block: approveBlock }));
+await fetch(`${origin}/test-feature/feedback`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ block: approveBlock }),
+});
 await new Promise((r) => setTimeout(r, 150));
 const status = JSON.parse((await client.callTool({ name: "wireframe_status", arguments: { feature: "Test Feature" } })).content[0].text);
 assert.strictEqual(status.approved, true, "approved flag");
@@ -131,7 +147,6 @@ assert.strictEqual(status.openComments, 0, "open comments");
 assert.ok(status.url.includes("/test-feature/wireframe.html"), "status url");
 console.log("✓ wireframe_status approved:", JSON.stringify(status));
 
-ws.close();
 await client.close();
 console.log("\nALL PASS");
 process.exit(0);

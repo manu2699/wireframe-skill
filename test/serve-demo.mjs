@@ -1,5 +1,5 @@
 // Boots the MCP server, opens a demo wireframe with an in-memory model,
-// prints the URL, and stays alive so a browser can verify rendering + WS feedback.
+// prints the URL, and stays alive so a browser can verify rendering + SSE/POST feedback.
 import path from "path";
 import { fileURLToPath } from "url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";

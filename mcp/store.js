@@ -7,7 +7,7 @@
  *   waiters      – resolve fns from pending wireframe_wait_feedback calls
  *   approved     – flipped true when the browser sends an APPROVED block
  *   openComments – extracted from the most recent block
- *   sockets      – active WebSocket connections for this feature
+ *   clients      – active SSE client response streams for this feature
  */
 
 import { info, warn } from "./log.js";
@@ -25,7 +25,7 @@ export function slugify(name) {
 export function get(slug) {
   let f = features.get(slug);
   if (!f) {
-    f = { model: null, queue: [], waiters: [], approved: false, openComments: 0, sockets: new Set() };
+    f = { model: null, queue: [], waiters: [], approved: false, openComments: 0, clients: new Set() };
     features.set(slug, f);
   }
   return f;
@@ -123,8 +123,48 @@ export function broadcast(slug, msg) {
   if (!f) return;
   const payload = JSON.stringify(msg);
   let sent = 0;
-  for (const s of f.sockets) {
-    try { if (s.readyState === 1) { s.send(payload); sent++; } } catch (_) { }
+  for (const res of f.clients) {
+    try {
+      if (!res.writableEnded) {
+        res.write("data: " + payload + "\n\n");
+        sent++;
+      }
+    } catch (_) { }
   }
-  info("store", `broadcast "${slug}" type=${msg.type}`, { sent, total: f.sockets.size });
+  info("store", `broadcast "${slug}" type=${msg.type}`, { sent, total: f.clients.size });
+}
+
+export function broadcastLog(entry) {
+  const payload = JSON.stringify({ type: "log", entry });
+  for (const f of features.values()) {
+    for (const res of f.clients) {
+      try {
+        if (!res.writableEnded) {
+          res.write("data: " + payload + "\n\n");
+        }
+      } catch (_) { }
+    }
+  }
+}
+
+export function getAllClients() {
+  const all = [];
+  for (const f of features.values()) {
+    for (const res of f.clients) {
+      all.push(res);
+    }
+  }
+  return all;
+}
+
+export function keepAlive() {
+  for (const f of features.values()) {
+    for (const res of f.clients) {
+      try {
+        if (!res.writableEnded) {
+          res.write(":\n\n");
+        }
+      } catch (_) { }
+    }
+  }
 }

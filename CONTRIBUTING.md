@@ -38,7 +38,7 @@ Other commands:
 
 ```bash
 npm run build              # emit the shippable bundle → assets/dist/wireframe-app.js
-node test/serve-demo.mjs   # serve a wireframe through the real MCP harness (HTTP + WS)
+node test/serve-demo.mjs   # serve a wireframe through the real MCP harness (HTTP + SSE/POST)
 npm test                   # MCP smoke test + CLI registration tests
 npx tsc --noEmit           # type-check
 ```
@@ -60,7 +60,7 @@ app/
     types.ts         The wireframe JSON schema (source of truth)
     model/           Input: stamp.ts (stable ids), read.ts (DOM #wf-model adapter)
     hooks/           React state: useNav, useComments, useReview, useTheme
-    ports/           Injected boundaries: storage (localStorage/in-memory), transport (WS/no-op)
+    ports/           Injected boundaries: storage (localStorage/in-memory), transport (SSE+POST/no-op)
     lib/             Pure helpers: utils (cn), blocks (feedback/approval builders)
     render/          Recursive node renderers + registry (type → component) + glyphs
     ui/              Presentational chrome: header, canvas, dialog, sidebar, comment popover
@@ -77,7 +77,7 @@ bin/cli.js        CLI: install / uninstall / mcp / list commands
 mcp/
   server.js       Entry point — wires modules, connects MCP stdio transport
   store.js        FeatureStore — in-memory model, feedback queue, approval state
-  preview.js      HTTP + WebSocket server — dynamic HTML composition, asset serving
+  preview.js      HTTP + SSE server — dynamic HTML composition, asset serving
   tools.js        MCP tool definitions + handlers
 test/             MCP smoke test (smoke.mjs) + CLI registration tests (cli-mcp.mjs)
 ```
@@ -92,7 +92,7 @@ the DOM, `localStorage`, or the network itself. The concrete adapters are wired 
 exactly two entry points:
 
 - `app/src/main.tsx` (production): reads `#wf-model`, uses `localStorage` + the live
-  MCP WebSocket transport.
+  MCP SSE + HTTP POST transport.
 - `app/dev/main.tsx` (dev): feeds an example model, in-memory storage, and an
   offline transport.
 
@@ -111,8 +111,8 @@ composes HTML dynamically (template + in-memory model + WS bootstrap), and froze
 assets (CSS, JS) are served directly from the package's `assets/` directory. The
 server is split into four modules:
 
-- `mcp/store.js` — feature state (model, feedback queue, approval, connected sockets)
-- `mcp/preview.js` — HTTP + WebSocket server (dynamic HTML, cached assets, browser launch)
+- `mcp/store.js` — feature state (model, feedback queue, approval, connected clients)
+- `mcp/preview.js` — HTTP + SSE server (dynamic HTML, cached assets, browser launch)
 - `mcp/tools.js` — MCP tool schemas + handlers
 - `mcp/server.js` — entry point (~30 lines, wires everything together)
 
@@ -251,7 +251,7 @@ npm test
 ```
 
 Runs two test files:
-- `test/smoke.mjs` — spins the full MCP server, opens a wireframe, simulates browser WS push, asserts the agent receives the block.
+- `test/smoke.mjs` — spins the full MCP server, opens a wireframe, simulates browser HTTP POST push, asserts the agent receives the block.
 - `test/cli-mcp.mjs` — exercises all `mcp` CLI subcommands (register, idempotent rerun, JSONC safety, --print, --remove).
 
 Manual browser testing:

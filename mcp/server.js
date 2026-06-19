@@ -27,8 +27,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }))
 
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: args = {} } = req.params;
+  const meta = req.params._meta;
   info("mcp", `tool call: ${name}`, { feature: args.feature });
-  return handleTool(name, args);
+  return handleTool(name, args, { server, meta });
 });
 
 const transport = new StdioServerTransport();

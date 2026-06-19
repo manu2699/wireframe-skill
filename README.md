@@ -91,7 +91,7 @@ You author a JSON model — a `screens → states → nodes` tree — and the pr
 
 The copy-paste feedback loop works in any harness, including pure chat. If you're on a **local** harness (Claude Code, Cursor, Cline, Windsurf, Codex), you can drop the paste step entirely with the bundled **MCP server**.
 
-The agent passes the wireframe model to `wireframe_open`, which holds it in memory and serves it on localhost. The browser streams **"Copy feedback"** / **"✓ Approve"** blocks back to the agent over a WebSocket — no clipboard paste needed. Updates go through `wireframe_update`, which swaps the in-memory model and auto-reloads the browser.
+The agent passes the wireframe model to `wireframe_open`, which holds it in memory and serves it on localhost. The browser streams **"Send to agent"** / **"✓ Approve"** blocks back to the agent over HTTP POST, with live reload signals streamed back via Server-Sent Events (SSE) — no clipboard paste needed. Updates go through `wireframe_update`, which swaps the in-memory model and auto-reloads the browser.
 
 ### Setup (two commands)
 

@@ -21,7 +21,7 @@ Pure Node.js installer. Reads `SKILL.md` and copies it into agent rule directori
 - `server.js` — stdio MCP server using `@modelcontextprotocol/sdk`
 - `tools.js` — tool definitions and dispatch (`wireframe_open`, `wireframe_update`, `wireframe_wait_feedback`, `wireframe_poll_feedback`, `wireframe_status`)
 - `store.js` — in-memory model store (feature slug → `WFModel` JSON)
-- `preview.js` — HTTP + WebSocket server; serves `assets/template.html` with the model injected, plus frozen `assets/wireframe.css` and `assets/dist/wireframe-app.js`; browser feedback arrives over WebSocket
+- `preview.js` — HTTP + SSE server; serves `assets/template.html` with the model injected, plus frozen `assets/wireframe.css` and `assets/dist/wireframe-app.js`; browser feedback arrives over HTTP POST
 
 No files are written to the user's project. Everything is in-memory or served from `assets/`.
 
@@ -33,13 +33,13 @@ Key structure:
 - `app/src/model/normalize.ts` — expands shorthands (`row[]`, `col[]`, `$ref`, single-state `nodes`) before render
 - `app/src/render/` — one component per `Kind`; `registry.ts` maps kind strings to components; `Node.tsx` dispatches
 - `app/src/ui/` — chrome: tabs, header, flow map, comment popover, review sidebar
-- `app/src/ports/transport.ts` — WebSocket client (receives model pushes + sends feedback to MCP)
+- `app/src/ports/transport.ts` — SSE + HTTP POST client (receives model pushes via SSE + sends feedback to MCP via POST)
 
 ### Data flow
 
-Agent → `wireframe_open(feature, model)` → `store.js` (in-memory) → HTTP serves HTML with model JSON embedded → React app boots, reads model from `window.__WF_MODEL__` → renders. Browser feedback → WebSocket → `store.js` feedback queue → `wireframe_wait_feedback` returns to agent.
+Agent → `wireframe_open(feature, model)` → `store.js` (in-memory) → HTTP serves HTML with model JSON embedded → React app boots, reads model from `window.__WF_MODEL__` → renders. Browser feedback → HTTP POST → `store.js` feedback queue → `wireframe_wait_feedback` returns to agent.
 
-`wireframe_update` pushes a new model into store and sends a WebSocket reload signal; browser swaps model without page reload.
+`wireframe_update` pushes a new model into store and sends an SSE reload signal; browser swaps model without page reload.
 
 ## Key invariants
 

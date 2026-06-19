@@ -1,6 +1,6 @@
 // Transport port: how a feedback/approval block leaves the browser. The live
-// adapter talks to the MCP WebSocket bootstrap (window.__wfSend) injected by
-// mcp/server.js. Clipboard copy is only a fallback when the WS send fails or
+// adapter talks to the MCP SSE + HTTP POST bootstrap (window.__wfSend) injected by
+// mcp/preview.js. Clipboard copy is only a fallback when the send fails or
 // the server is not connected. The no-op adapter (dev/tests) only copies.
 //
 // Connection state is exposed framework-agnostically (isConnected + subscribe)
@@ -35,7 +35,7 @@ function fallbackCopy(text: string): void {
   ta.remove();
 }
 
-// Live MCP transport. Registers the WS bootstrap hooks and notifies subscribers
+// Live MCP transport. Registers the SSE/POST bootstrap hooks and notifies subscribers
 // when connection state changes.
 export function createLiveTransport(): Transport {
   let connected = !!(window as any).__wfConnected;
