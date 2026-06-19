@@ -68,8 +68,10 @@ const PLATFORMS = {
     label: "Agents folder (.agents/) - Generic",
   },
   codex: {
-    ...genericAgentSkill,
     label: "Codex (OpenAI)",
+    type: "append",
+    dest: () => path.join(os.homedir(), ".codex", "AGENTS.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
   antigravity: {
     label: "Antigravity",
@@ -87,14 +89,17 @@ const PLATFORMS = {
     pluginManifest: { name: PKG_NAME },
   },
   copilot: {
-    ...genericAgentSkill,
     label: "GitHub Copilot",
+    type: "append",
+    dest: () =>
+      path.join(process.cwd(), ".github", "copilot-instructions.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
   "amp-code": {
     label: "Amp Code",
-    type: "copy",
-    dest: () =>
-      path.join(process.cwd(), ".amp", "rules", PKG_NAME, `${PKG_NAME}.md`),
+    type: "append",
+    dest: () => path.join(process.cwd(), "AGENTS.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
 };
 
@@ -241,6 +246,12 @@ const MCP_TARGETS = {
     key: "mcpServers",
     file: () => path.join(process.cwd(), ".cursor", "mcp.json"),
   },
+  kilocode: {
+    label: "Kilocode",
+    format: "json",
+    key: "mcpServers",
+    file: () => path.join(process.cwd(), ".kilocode", "mcp.json"),
+  },
   windsurf: {
     label: "Windsurf",
     format: "json",
@@ -248,17 +259,12 @@ const MCP_TARGETS = {
     file: () =>
       path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json"),
   },
-  vscode: {
-    label: "VS Code (Copilot agent)",
-    format: "json",
-    key: "servers", // VS Code uses "servers", not "mcpServers"
-    file: () => path.join(process.cwd(), ".vscode", "mcp.json"),
-  },
   copilot: {
-    label: "GitHub Copilot CLI (global)",
+    // VS Code Copilot agent mode reads .vscode/mcp.json with a "servers" key
+    label: "GitHub Copilot (VS Code)",
     format: "json",
-    key: "mcpServers",
-    file: () => path.join(os.homedir(), ".copilot", "mcp-config.json"),
+    key: "servers",
+    file: () => path.join(process.cwd(), ".vscode", "mcp.json"),
   },
   codex: {
     label: "Codex (OpenAI)",
@@ -271,16 +277,37 @@ const MCP_TARGETS = {
     file: () => "<VS Code globalStorage>/.../cline_mcp_settings.json",
   },
   antigravity: {
-    label: "Antigravity",
+    label: "Antigravity (global)",
     format: "json",
     key: "mcpServers",
     file: () =>
-      path.join(process.cwd(), ".agents", "plugins", PKG_NAME, "mcp_config.json"),
+      path.join(os.homedir(), ".gemini", "config", "mcp_config.json"),
+  },
+  "amp-code": {
+    label: "Amp Code",
+    format: "json",
+    key: "amp.mcpServers",
+    file: () => path.join(os.homedir(), ".config", "amp", "settings.json"),
   },
 };
 
+/** Build a nested object from a dot-path key, e.g. "amp.mcpServers" → { amp: { mcpServers: ... } } */
 function jsonSnippet(key) {
-  return JSON.stringify({ [key]: { [MCP_NAME]: MCP_SERVER } }, null, 2);
+  const parts = key.split(".");
+  let obj = { [MCP_NAME]: MCP_SERVER };
+  for (let i = parts.length - 1; i >= 0; i--) obj = { [parts[i]]: obj };
+  return JSON.stringify(obj, null, 2);
+}
+
+/** Read a dot-path from obj, creating intermediate objects as needed. Returns the leaf container + leaf key. */
+function dotGet(obj, key) {
+  const parts = key.split(".");
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    cur[parts[i]] = cur[parts[i]] || {};
+    cur = cur[parts[i]];
+  }
+  return { container: cur, leaf: parts[parts.length - 1] };
 }
 function tomlSnippet() {
   return `[mcp_servers.${MCP_NAME}]\ncommand = "${MCP_SERVER.command}"\nargs = ${JSON.stringify(
@@ -321,12 +348,13 @@ function registerMcp(name, t) {
       printMcpSnippet(name, t, "existing config has comments — edit it by hand to avoid clobbering");
       return;
     }
-    obj[key] = obj[key] || {};
-    if (obj[key][MCP_NAME]) {
+    const { container: rc, leaf: rl } = dotGet(obj, key);
+    rc[rl] = rc[rl] || {};
+    if (rc[rl][MCP_NAME]) {
       console.log(`  ${t.label}: already registered → ${file}`);
       return;
     }
-    obj[key][MCP_NAME] = MCP_SERVER;
+    rc[rl][MCP_NAME] = MCP_SERVER;
     fs.writeFileSync(file + ".bak", raw, "utf8");
     fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
     console.log(`✓ ${t.label}: added MCP server → ${file} (backup: ${path.basename(file)}.bak)`);
@@ -356,8 +384,9 @@ function removeMcp(name, t) {
     return;
   }
   const key = t.key;
-  if (obj[key] && obj[key][MCP_NAME]) {
-    delete obj[key][MCP_NAME];
+  const { container: dc, leaf: dl } = dotGet(obj, key);
+  if (dc[dl] && dc[dl][MCP_NAME]) {
+    delete dc[dl][MCP_NAME];
     fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
     console.log(`✓ ${t.label}: removed MCP server → ${file}`);
   } else {
