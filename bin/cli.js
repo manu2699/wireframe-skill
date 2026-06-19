@@ -167,8 +167,16 @@ function removePlatform(name, platform) {
     // so remove the whole folder. Fall back to unlinking the lone file for any legacy flat install.
     const dir = path.dirname(dest);
     if (path.basename(dir) === PKG_NAME && fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-      console.log(`✓ removed ${platform.label} → ${dir}`);
+      if (platform.pluginManifest) {
+        const pluginDir = path.join(process.cwd(), ".agents", "plugins", PKG_NAME);
+        if (fs.existsSync(pluginDir)) {
+          fs.rmSync(pluginDir, { recursive: true, force: true });
+          console.log(`✓ removed ${platform.label} plugin → ${pluginDir}`);
+        }
+      } else {
+        fs.rmSync(dir, { recursive: true, force: true });
+        console.log(`✓ removed ${platform.label} → ${dir}`);
+      }
     } else if (fs.existsSync(dest)) {
       fs.unlinkSync(dest);
       console.log(`✓ removed ${platform.label} → ${dest}`);
@@ -489,6 +497,9 @@ if (cmd === "uninstall") {
       continue;
     }
     removePlatform(t, PLATFORMS[t]);
+    if (MCP_TARGETS[t]) {
+      removeMcp(t, MCP_TARGETS[t]);
+    }
   }
   process.exit(0);
 }
