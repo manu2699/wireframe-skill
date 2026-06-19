@@ -68,8 +68,10 @@ const PLATFORMS = {
     label: "Agents folder (.agents/) - Generic",
   },
   codex: {
-    ...genericAgentSkill,
     label: "Codex (OpenAI)",
+    type: "append",
+    dest: () => path.join(os.homedir(), ".codex", "AGENTS.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
   antigravity: {
     label: "Antigravity",
@@ -87,23 +89,32 @@ const PLATFORMS = {
     pluginManifest: { name: PKG_NAME },
   },
   copilot: {
-    ...genericAgentSkill,
     label: "GitHub Copilot",
+    type: "append",
+    dest: () =>
+      path.join(process.cwd(), ".github", "copilot-instructions.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
   "amp-code": {
     label: "Amp Code",
-    type: "copy",
-    dest: () =>
-      path.join(process.cwd(), ".amp", "rules", PKG_NAME, `${PKG_NAME}.md`),
+    type: "append",
+    dest: () => path.join(process.cwd(), "AGENTS.md"),
+    section: `\n\n${SKILL_CONTENT}\n`,
   },
 };
 
-// Copy the assets/ folder (template.html shell, wireframe.css, dist/wireframe-app.js, feature-spec.md, DESIGN.md) next to the installed SKILL.md so its relative `assets/...` references resolve. Recursive, so the prebuilt app bundle in dist/ ships too. Without this the agent has to reconstruct the frozen shell/stylesheet/bundle from prose.
+// Copy only reference docs (DESIGN.md, feature-spec.md) next to the installed SKILL.md.
 function copyAssets(dest) {
   if (!fs.existsSync(ASSETS_SRC)) return;
   const assetsDest = path.join(path.dirname(dest), "assets");
-  fs.rmSync(assetsDest, { recursive: true, force: true });
-  fs.cpSync(ASSETS_SRC, assetsDest, { recursive: true });
+  fs.mkdirSync(assetsDest, { recursive: true });
+  const docsOnly = ["DESIGN.md", "feature-spec.md"];
+  for (const file of docsOnly) {
+    const src = path.join(ASSETS_SRC, file);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, path.join(assetsDest, file));
+    }
+  }
   console.log(`  ↳ assets/ → ${assetsDest}`);
 }
 
@@ -156,8 +167,16 @@ function removePlatform(name, platform) {
     // so remove the whole folder. Fall back to unlinking the lone file for any legacy flat install.
     const dir = path.dirname(dest);
     if (path.basename(dir) === PKG_NAME && fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-      console.log(`✓ removed ${platform.label} → ${dir}`);
+      if (platform.pluginManifest) {
+        const pluginDir = path.join(process.cwd(), ".agents", "plugins", PKG_NAME);
+        if (fs.existsSync(pluginDir)) {
+          fs.rmSync(pluginDir, { recursive: true, force: true });
+          console.log(`✓ removed ${platform.label} plugin → ${pluginDir}`);
+        }
+      } else {
+        fs.rmSync(dir, { recursive: true, force: true });
+        console.log(`✓ removed ${platform.label} → ${dir}`);
+      }
     } else if (fs.existsSync(dest)) {
       fs.unlinkSync(dest);
       console.log(`✓ removed ${platform.label} → ${dest}`);
@@ -195,11 +214,11 @@ function autoDetect() {
   // Project-level platform dirs
   const projectChecks = [
     ["claude-project", ".claude"],
-    ["cursor",         ".cursor"],
-    ["windsurf",       ".windsurf"],
-    ["kilocode",       ".kilocode"],
-    ["amp-code",       ".amp"],
-    ["agents",         ".agents"],
+    ["cursor", ".cursor"],
+    ["windsurf", ".windsurf"],
+    ["kilocode", ".kilocode"],
+    ["amp-code", ".amp"],
+    ["agents", ".agents"],
   ];
   for (const [name, dir] of projectChecks) {
     if (fs.existsSync(path.join(cwd, dir))) detected.push(name);
@@ -220,7 +239,7 @@ function autoDetect() {
 // differ. Strategy: auto-merge JSON where safe, print a snippet otherwise.
 
 const MCP_NAME = PKG_NAME; // "wireframe-preview"
-const MCP_SERVER = { command: "npx", args: ["-y", "--package=wireframe-preview", "wf-preview-mcp"] };
+const MCP_SERVER = { command: "npx", args: ["-y", "wireframe-preview", "serve"] };
 
 const MCP_TARGETS = {
   "claude-project": {
@@ -235,6 +254,12 @@ const MCP_TARGETS = {
     key: "mcpServers",
     file: () => path.join(process.cwd(), ".cursor", "mcp.json"),
   },
+  kilocode: {
+    label: "Kilocode",
+    format: "json",
+    key: "mcpServers",
+    file: () => path.join(process.cwd(), ".kilocode", "mcp.json"),
+  },
   windsurf: {
     label: "Windsurf",
     format: "json",
@@ -242,10 +267,11 @@ const MCP_TARGETS = {
     file: () =>
       path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json"),
   },
-  vscode: {
-    label: "VS Code (Copilot agent)",
+  copilot: {
+    // VS Code Copilot agent mode reads .vscode/mcp.json with a "servers" key
+    label: "GitHub Copilot (VS Code)",
     format: "json",
-    key: "servers", // VS Code uses "servers", not "mcpServers"
+    key: "servers",
     file: () => path.join(process.cwd(), ".vscode", "mcp.json"),
   },
   codex: {
@@ -259,16 +285,37 @@ const MCP_TARGETS = {
     file: () => "<VS Code globalStorage>/.../cline_mcp_settings.json",
   },
   antigravity: {
-    label: "Antigravity",
+    label: "Antigravity (global)",
     format: "json",
     key: "mcpServers",
     file: () =>
-      path.join(process.cwd(), ".agents", "plugins", PKG_NAME, "mcp_config.json"),
+      path.join(os.homedir(), ".gemini", "config", "mcp_config.json"),
+  },
+  "amp-code": {
+    label: "Amp Code",
+    format: "json",
+    key: "amp.mcpServers",
+    file: () => path.join(os.homedir(), ".config", "amp", "settings.json"),
   },
 };
 
+/** Build a nested object from a dot-path key, e.g. "amp.mcpServers" → { amp: { mcpServers: ... } } */
 function jsonSnippet(key) {
-  return JSON.stringify({ [key]: { [MCP_NAME]: MCP_SERVER } }, null, 2);
+  const parts = key.split(".");
+  let obj = { [MCP_NAME]: MCP_SERVER };
+  for (let i = parts.length - 1; i >= 0; i--) obj = { [parts[i]]: obj };
+  return JSON.stringify(obj, null, 2);
+}
+
+/** Read a dot-path from obj, creating intermediate objects as needed. Returns the leaf container + leaf key. */
+function dotGet(obj, key) {
+  const parts = key.split(".");
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    cur[parts[i]] = cur[parts[i]] || {};
+    cur = cur[parts[i]];
+  }
+  return { container: cur, leaf: parts[parts.length - 1] };
 }
 function tomlSnippet() {
   return `[mcp_servers.${MCP_NAME}]\ncommand = "${MCP_SERVER.command}"\nargs = ${JSON.stringify(
@@ -309,12 +356,13 @@ function registerMcp(name, t) {
       printMcpSnippet(name, t, "existing config has comments — edit it by hand to avoid clobbering");
       return;
     }
-    obj[key] = obj[key] || {};
-    if (obj[key][MCP_NAME]) {
+    const { container: rc, leaf: rl } = dotGet(obj, key);
+    rc[rl] = rc[rl] || {};
+    if (rc[rl][MCP_NAME]) {
       console.log(`  ${t.label}: already registered → ${file}`);
       return;
     }
-    obj[key][MCP_NAME] = MCP_SERVER;
+    rc[rl][MCP_NAME] = MCP_SERVER;
     fs.writeFileSync(file + ".bak", raw, "utf8");
     fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
     console.log(`✓ ${t.label}: added MCP server → ${file} (backup: ${path.basename(file)}.bak)`);
@@ -344,8 +392,9 @@ function removeMcp(name, t) {
     return;
   }
   const key = t.key;
-  if (obj[key] && obj[key][MCP_NAME]) {
-    delete obj[key][MCP_NAME];
+  const { container: dc, leaf: dl } = dotGet(obj, key);
+  if (dc[dl] && dc[dl][MCP_NAME]) {
+    delete dc[dl][MCP_NAME];
     fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n", "utf8");
     console.log(`✓ ${t.label}: removed MCP server → ${file}`);
   } else {
@@ -363,7 +412,12 @@ if (cmd === "--version" || cmd === "-v") {
   process.exit(0);
 }
 
-if (!cmd || cmd === "help") {
+if (cmd === "serve" || cmd === "mcp-server") {
+  await import("../mcp/server.js");
+  await new Promise(() => { });
+}
+
+if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
   console.log(`
 wireframe-preview — install a low-fidelity wireframe skill into your AI agent
 
@@ -443,6 +497,9 @@ if (cmd === "uninstall") {
       continue;
     }
     removePlatform(t, PLATFORMS[t]);
+    if (MCP_TARGETS[t]) {
+      removeMcp(t, MCP_TARGETS[t]);
+    }
   }
   process.exit(0);
 }
@@ -454,8 +511,8 @@ if (cmd === "mcp") {
   // No platform → safest default: print the config for every harness, edit nothing.
   if (!platformFlag) {
     console.log(
-      "MCP launch command (same everywhere): npx -y wireframe-mcp\n" +
-        "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
+      "MCP launch command (same everywhere): npx -y wireframe-preview serve\n" +
+      "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
     );
     for (const [name, t] of Object.entries(MCP_TARGETS)) printMcpSnippet(name, t);
     process.exit(0);

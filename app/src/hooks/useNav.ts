@@ -54,7 +54,9 @@ export function useNav(model: WFModel) {
 
   const gotoScreen = useCallback(
     (id: string) => {
-      if (model.screens.some((s) => s.id === id)) dispatch({ type: "goto", id });
+      const isScreen = model.screens.some((s) => s.id === id);
+      const isModalTab = id.startsWith("modal:") && (model.modals || []).some((m) => m.id === id.slice(6));
+      if (isScreen || isModalTab) dispatch({ type: "goto", id });
     },
     [model],
   );

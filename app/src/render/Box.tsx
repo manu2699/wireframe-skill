@@ -175,7 +175,7 @@ function AnnotationRow(props: { icon: ReactNode; label: string; value: string; m
         <div className="flex items-center gap-1.5 text-[9.5px] font-semibold uppercase tracking-wide opacity-50">
           {props.label}
           {guessed && (
-            <span className="inline-flex items-center gap-0.5 rounded-sm bg-background/15 px-1 py-px text-[8.5px] font-medium normal-case tracking-normal">
+            <span className="inline-flex items-center gap-0.5 rounded-sm bg-[var(--wfc-accent-2)] px-1 py-px text-[8.5px] font-medium normal-case tracking-normal text-[var(--wfc-accent-2-ink)]">
               <Sparkle className="h-2.5 w-2.5" /> guessed
             </span>
           )}

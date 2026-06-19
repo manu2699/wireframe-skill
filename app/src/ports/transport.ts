@@ -1,6 +1,6 @@
 // Transport port: how a feedback/approval block leaves the browser. The live
-// adapter talks to the MCP WebSocket bootstrap (window.__wfSend) injected by
-// mcp/server.js. Clipboard copy is only a fallback when the WS send fails or
+// adapter talks to the MCP SSE + HTTP POST bootstrap (window.__wfSend) injected by
+// mcp/preview.js. Clipboard copy is only a fallback when the send fails or
 // the server is not connected. The no-op adapter (dev/tests) only copies.
 //
 // Connection state is exposed framework-agnostically (isConnected + subscribe)
@@ -35,10 +35,10 @@ function fallbackCopy(text: string): void {
   ta.remove();
 }
 
-// Live MCP transport. Registers the WS bootstrap hooks and notifies subscribers
+// Live MCP transport. Registers the SSE/POST bootstrap hooks and notifies subscribers
 // when connection state changes.
 export function createLiveTransport(): Transport {
-  let connected = false;
+  let connected = !!(window as any).__wfConnected;
   const listeners = new Set<() => void>();
   const emit = () => listeners.forEach((l) => l());
   const set = (v: boolean) => {
@@ -48,6 +48,8 @@ export function createLiveTransport(): Transport {
   };
   (window as any).__wfOnConnect = () => set(true);
   (window as any).__wfOnDisconnect = () => set(false);
+  // Sync in case WS already opened before React mounted (race condition).
+  set(!!(window as any).__wfConnected);
 
   return {
     isConnected: () => connected,
@@ -60,7 +62,7 @@ export function createLiveTransport(): Transport {
       if (live) {
         try {
           (window as any).__wfSend(block);
-          flash("Sent to agent ✓");
+          flash(connected ? "Sent to agent ✓" : "Queued — waiting for agent connection…");
           return;
         } catch {
           /* fall through to clipboard */

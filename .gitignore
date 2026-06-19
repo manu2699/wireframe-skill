@@ -5,14 +5,11 @@ npm-debug.log*
 # wireframe output generated during local testing
 .wireframes/
 
-# agent config files written by the installer
-AGENTS.md
-GEMINI.md
+
 .github/copilot-instructions.md
 .cursor/
 .kilocode/
 .windsurf/
 .amp/
-CLAUDE.md
 .claude/
 .npmrc

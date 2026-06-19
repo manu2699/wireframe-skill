@@ -1,6 +1,6 @@
 // App header: brand, screen tabs, mode toggle, dark-mode toggle, flow toggle.
 
-import type { WFFlow, WFScreen } from "../types";
+import type { WFFlow, WFModal, WFScreen } from "../types";
 import type { Mode } from "../hooks/useNav";
 import { ScreenTabs } from "./ScreenTabs";
 import { ModeToggle } from "./ModeToggle";
@@ -8,10 +8,9 @@ import { ModeToggle } from "./ModeToggle";
 function BrandMark() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0 text-primary" aria-hidden>
-      <line x1="7.5" y1="1" x2="7.5" y2="14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      <line x1="1" y1="7.5" x2="14" y2="7.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      <line x1="2.8" y1="2.8" x2="12.2" y2="12.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      <line x1="12.2" y1="2.8" x2="2.8" y2="12.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+      <rect x="1" y="1" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="5.5" y1="1" x2="5.5" y2="14" stroke="currentColor" strokeWidth="1"/>
+      <line x1="1" y1="5.5" x2="14" y2="5.5" stroke="currentColor" strokeWidth="1"/>
     </svg>
   );
 }
@@ -19,6 +18,7 @@ function BrandMark() {
 export function Header(props: {
   feature: string;
   screens: WFScreen[];
+  modals?: WFModal[];
   screenId: string;
   badgeCount: (screenName: string) => number;
   onGoto: (id: string) => void;
@@ -43,6 +43,7 @@ export function Header(props: {
       {/* Screen tabs — fills remaining space */}
       <ScreenTabs
         screens={props.screens}
+        modals={props.modals}
         screenId={props.screenId}
         badgeCount={props.badgeCount}
         onGoto={props.onGoto}

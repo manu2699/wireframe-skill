@@ -77,8 +77,37 @@ export function buildFeedback(feature: string, comments: Record<string, Comment>
   return lines.join("\n");
 }
 
+function collectFormFields(nodes: WFNode[]): Array<{ screen: string; label: string; fields: string[] }> {
+  const out: Array<{ screen: string; label: string; fields: string[] }> = [];
+  const visit = (n: WFNode, ctx: string) => {
+    if (n.kind === "form" && n.fields?.length) {
+      out.push({
+        screen: ctx,
+        label: n.label || "Form",
+        fields: n.fields.map((f) => f.label + (f.type ? " (" + f.type + ")" : "")),
+      });
+    }
+    for (const c of n.children || []) visit(c, ctx);
+  };
+  for (const n of nodes) visit(n, "");
+  return out;
+}
+
+function collectNewChanged(model: WFModel, metaOf: MetaLookup): Array<{ id: string; label: string; screen: string; marker: string }> {
+  const out: Array<{ id: string; label: string; screen: string; marker: string }> = [];
+  const visit = (n: WFNode & { _id?: string }, screen: string) => {
+    if (n._id && (n.new || n.changed)) {
+      const m = metaOf(n._id);
+      out.push({ id: n._id, label: m?.label ?? n.label ?? "", screen: m?.screen ?? screen, marker: n.new ? "new" : "changed" });
+    }
+    for (const c of n.children || []) visit(c, screen);
+  };
+  for (const sc of model.screens) for (const st of sc.states ?? []) for (const n of st.nodes) visit(n, sc.name);
+  for (const md of model.modals || []) for (const n of md.nodes) visit(n, md.name);
+  return out;
+}
+
 export function buildApproval(model: WFModel, comments: Record<string, Comment>, metaOf: MetaLookup): string {
-  const screens = model.screens.map((s) => s.name);
   const boxes = collectAnnotated(model, metaOf);
   const openCount = Object.keys(comments).length;
   const lines = [
@@ -89,10 +118,75 @@ export function buildApproval(model: WFModel, comments: Record<string, Comment>,
     "Next: turn the mapping below into an implementation PLAN, then wait for greenlight.",
     "Also persist this as the approved feature-spec.",
     "",
-    "Screens: " + (screens.join(", ") || "(none)"),
-    "",
-    "Mapping (id | label | screen | state | backend | design-system | flow):",
   ];
+
+  // Change summary
+  if (model.change) {
+    lines.push("Change: " + model.change);
+    lines.push("");
+  }
+
+  // Screen breakdown with roles and states
+  lines.push("## Screens");
+  for (const sc of model.screens) {
+    const role = sc.role ? " [" + sc.role + "]" : "";
+    const stateNames = (sc.states || []).map((st) => st.id).filter((id) => id !== "default");
+    const stateStr = stateNames.length ? " (states: default, " + stateNames.join(", ") + ")" : "";
+    lines.push("- " + sc.id + ": " + sc.name + role + stateStr);
+  }
+  lines.push("");
+
+  // Modals
+  if (model.modals?.length) {
+    lines.push("## Modals");
+    for (const md of model.modals) {
+      const forms = collectFormFields(md.nodes);
+      lines.push("- " + md.id + ": " + md.name);
+      for (const f of forms) {
+        lines.push("  Fields: " + f.fields.join(", "));
+      }
+    }
+    lines.push("");
+  }
+
+  // Flow map
+  if (model.flows?.length) {
+    lines.push("## Flow");
+    for (const f of model.flows) {
+      lines.push("- " + f.from + " → [" + f.via + "] → " + f.to);
+    }
+    lines.push("");
+  }
+
+  // New/changed elements
+  const nc = collectNewChanged(model, metaOf);
+  if (nc.length) {
+    lines.push("## New & Changed Elements");
+    for (const el of nc) {
+      lines.push("- [#" + el.id + '] "' + el.label + '" on ' + el.screen + " — ✦ " + el.marker);
+    }
+    lines.push("");
+  }
+
+  // Form fields per screen
+  const allForms: Array<{ screen: string; label: string; fields: string[] }> = [];
+  for (const sc of model.screens) {
+    for (const st of sc.states ?? []) {
+      const found = collectFormFields(st.nodes);
+      for (const f of found) f.screen = sc.name;
+      allForms.push(...found);
+    }
+  }
+  if (allForms.length) {
+    lines.push("## Form Fields (in-screen)");
+    for (const f of allForms) {
+      lines.push("- " + f.screen + " / " + f.label + ": " + f.fields.join(", "));
+    }
+    lines.push("");
+  }
+
+  // Annotated box mapping (existing)
+  lines.push("## Mapping (id | label | screen | state | backend | design-system | flow)");
   boxes.forEach((b) => {
     let line =
       '[#' + b.id + '] label="' + b.label + '"' +

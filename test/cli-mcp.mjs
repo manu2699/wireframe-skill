@@ -26,7 +26,7 @@ let d = tmp();
 run(["mcp", "cursor"], d);
 let cfg = path.join(d, ".cursor", "mcp.json");
 let obj = readJson(cfg);
-assert.ok(obj.mcpServers["wireframe-preview"].args.includes("wireframe-mcp"), "cursor registered");
+assert.ok(obj.mcpServers["wireframe-preview"].args.includes("serve"), "cursor registered");
 console.log("✓ mcp cursor → .cursor/mcp.json with wireframe-mcp");
 
 // 2. idempotent rerun → byte-identical + "already registered"
@@ -59,15 +59,38 @@ assert.strictEqual(fs.readFileSync(cfg, "utf8"), commented, "commented config un
 assert.ok(/comments/.test(out4) && /add this MCP server manually/.test(out4), "printed snippet");
 console.log("✓ JSONC comments → prints snippet, never clobbers");
 
-// 5. vscode uses "servers" key, not "mcpServers"
+// 5. copilot uses "servers" key in .vscode/mcp.json (VS Code Copilot agent mode)
 d = tmp();
-run(["mcp", "vscode"], d);
+run(["mcp", "copilot"], d);
 obj = readJson(path.join(d, ".vscode", "mcp.json"));
-assert.ok(obj.servers && obj.servers["wireframe-preview"], "vscode uses servers key");
-assert.ok(!obj.mcpServers, "vscode has no mcpServers key");
-console.log("✓ mcp vscode → .vscode/mcp.json with `servers` key");
+assert.ok(obj.servers && obj.servers["wireframe-preview"], "copilot uses servers key in .vscode/mcp.json");
+assert.ok(!obj.mcpServers, "copilot has no mcpServers key");
+console.log("✓ mcp copilot → .vscode/mcp.json with `servers` key");
 
-// 6. codex is print-only (TOML) — writes nothing
+// 5.5 antigravity → ~/.gemini/config/mcp_config.json (global, mcpServers key)
+d = tmp();
+run(["mcp", "antigravity"], d);
+obj = readJson(path.join(d, ".gemini", "config", "mcp_config.json"));
+assert.ok(obj.mcpServers && obj.mcpServers["wireframe-preview"], "antigravity uses mcpServers key");
+console.log("✓ mcp antigravity → ~/.gemini/config/mcp_config.json with `mcpServers` key");
+
+// 6. kilocode → .kilocode/mcp.json with mcpServers key
+d = tmp();
+run(["mcp", "kilocode"], d);
+obj = readJson(path.join(d, ".kilocode", "mcp.json"));
+assert.ok(obj.mcpServers && obj.mcpServers["wireframe-preview"], "kilocode uses mcpServers key");
+assert.ok(!obj.servers, "kilocode has no servers key");
+console.log("✓ mcp kilocode → .kilocode/mcp.json with `mcpServers` key");
+
+// 7. amp-code → ~/.config/amp/settings.json with nested amp.mcpServers key
+d = tmp();
+run(["mcp", "amp-code"], d);
+obj = readJson(path.join(d, ".config", "amp", "settings.json"));
+assert.ok(obj.amp && obj.amp.mcpServers && obj.amp.mcpServers["wireframe-preview"], "amp-code uses nested amp.mcpServers key");
+assert.ok(!obj["amp.mcpServers"], "amp-code writes nested object, not literal dot key");
+console.log("✓ mcp amp-code → ~/.config/amp/settings.json with nested `amp.mcpServers` key");
+
+// 8. codex MCP target is print-only (TOML) — writes nothing
 d = tmp();
 const out6 = run(["mcp", "codex"], d);
 assert.ok(!fs.existsSync(path.join(d, ".codex", "config.toml")), "codex: no file written");

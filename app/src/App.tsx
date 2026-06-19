@@ -3,7 +3,9 @@
 // (model, id metadata, storage, transport) are injected — the entry points
 // (src/main.tsx for prod, app/dev/main.tsx for dev) construct the concrete ones.
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Toaster, toast } from "sonner";
+
 import type { WFModel } from "./types";
 import type { IdMeta } from "./model/stamp";
 import type { Storage } from "./ports/storage";
@@ -18,6 +20,7 @@ import { Header } from "./ui/Header";
 import { Canvas } from "./ui/Canvas";
 import { ReviewSidebar } from "./ui/ReviewSidebar";
 import { Modal } from "./ui/Modal";
+import { ModalPreview } from "./ui/ModalPreview";
 import { CommentPopover } from "./ui/CommentPopover";
 import { FlowMap } from "./ui/FlowMap";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -43,8 +46,23 @@ export function App(props: {
 
   const { nav, gotoScreen, setState, openModal, closeModal, setMode } = useNav(model);
   const { comments, order, upsert, remove } = useComments(storage);
-  const review = useReview({ model, metaOf, comments, order, upsert, remove, transport });
   const { theme, toggle: toggleTheme } = useTheme();
+
+  // Connection-state toasts
+  const everConnected = useRef(false);
+  const disconnectToastId = useRef<string | number | null>(null);
+
+  const flash = useCallback((msg: string) => {
+    if (msg.includes("Queued")) {
+      toast.warning("Queued for agent", { description: "Will deliver when agent reconnects.", duration: 3000 });
+    } else if (msg.includes("clipboard")) {
+      toast.info("Copied to clipboard", { duration: 2000 });
+    } else {
+      toast.success("Sent to agent", { duration: 2000 });
+    }
+  }, []);
+
+  const review = useReview({ model, metaOf, comments, order, upsert, remove, transport, flash });
 
   const [reviewCollapsed, setReviewCollapsed] = useState(readReviewCollapsed);
   const [showFlow, setShowFlow] = useState(false);
@@ -63,6 +81,31 @@ export function App(props: {
 
   const connected = useSyncExternalStore(transport.subscribe, transport.isConnected);
 
+  useEffect(() => {
+    if (connected) {
+      if (!everConnected.current) {
+        everConnected.current = true;
+        toast.success("Agent connected", { duration: 2000 });
+      } else {
+        if (disconnectToastId.current) {
+          toast.dismiss(disconnectToastId.current);
+          disconnectToastId.current = null;
+        }
+        toast.success("Agent reconnected", { duration: 2500 });
+      }
+    } else if (everConnected.current) {
+      disconnectToastId.current = toast.warning("Agent disconnected", {
+        description: "Reconnecting automatically. Feedback will be queued.",
+        duration: Infinity,
+        action: {
+          label: "Copy URL",
+          onClick: () => navigator.clipboard?.writeText(window.location.href),
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected]);
+
   const pinOf = (id?: string) => (id ? order.indexOf(id) + 1 : 0);
 
   const activeScreen = useMemo(
@@ -78,6 +121,12 @@ export function App(props: {
     () => (model.modals || []).find((m) => m.id === nav.modalId),
     [model, nav.modalId],
   );
+  // Modal tab selected: screenId == "modal:<id>" → show inline preview
+  const activeModalPreview = useMemo(() => {
+    if (!nav.screenId?.startsWith("modal:")) return undefined;
+    const id = nav.screenId.slice(6);
+    return (model.modals || []).find((m) => m.id === id);
+  }, [model, nav.screenId]);
 
   const badgeCount = (screenName: string) =>
     order.filter((id) => comments[id] && metaOf(id)?.screen === screenName).length;
@@ -94,7 +143,7 @@ export function App(props: {
     <TooltipProvider delayDuration={150}>
       <div className="wf-app flex h-screen flex-col" data-mode={nav.mode}>
         <Header
-          feature={model.feature} screens={model.screens} screenId={nav.screenId}
+          feature={model.feature} screens={model.screens} modals={model.modals} screenId={nav.screenId}
           badgeCount={badgeCount} onGoto={gotoScreen}
           mode={nav.mode} onMode={setMode}
           theme={theme} onTheme={toggleTheme}
@@ -105,10 +154,12 @@ export function App(props: {
         )}
 
         <div className="flex min-h-0 flex-1">
-          <Canvas screen={activeScreen} state={activeState} onSetState={setState} actions={actions} />
+          {activeModalPreview
+            ? <ModalPreview modal={activeModalPreview} actions={actions} />
+            : <Canvas screen={activeScreen} state={activeState} onSetState={setState} actions={actions} />}
           <ReviewSidebar
             model={model} comments={comments} order={order}
-            connected={connected} sent={review.sent}
+            connected={connected}
             onFeedback={review.onFeedback} onApprove={review.onApprove} onDelete={remove}
             collapsed={reviewCollapsed} onToggleCollapse={togglePanel}
           />
@@ -124,6 +175,35 @@ export function App(props: {
             onDelete={() => review.deleteComment(review.popover!.id)}
           />
         )}
+
+        <Toaster
+          position="bottom-left"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: "#0d0d0d",
+              border: "1px solid #222",
+              color: "#ebebeb",
+              fontFamily: "inherit",
+              fontSize: "12.5px",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
+            },
+          }}
+          style={{
+            "--success-bg": "#0d0d0d",
+            "--success-border": "#10b981",
+            "--success-text": "#ebebeb",
+            "--warning-bg": "#0d0d0d",
+            "--warning-border": "#f59e0b",
+            "--warning-text": "#ebebeb",
+            "--info-bg": "#0d0d0d",
+            "--info-border": "#6366f1",
+            "--info-text": "#ebebeb",
+            "--error-bg": "#0d0d0d",
+            "--error-border": "#ef4444",
+            "--error-text": "#ebebeb",
+          } as React.CSSProperties}
+        />
       </div>
     </TooltipProvider>
   );
