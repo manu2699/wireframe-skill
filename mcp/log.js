@@ -12,6 +12,11 @@ function entry(level, mod, msg, extra) {
   logs.push(e);
   if (logs.length > MAX_ENTRIES) logs.shift();
   for (const fn of subscribers) fn(e);
+
+  // Write to stderr so the MCP host/harness (Cursor, Claude Code, etc.) can capture and display server logs
+  const extraStr = extra !== undefined ? " " + JSON.stringify(extra) : "";
+  process.stderr.write(`[${e.t}] [${level}] [${mod}] ${msg}${extraStr}\n`);
+
   return e;
 }
 

@@ -254,6 +254,12 @@ const MCP_TARGETS = {
     key: "servers", // VS Code uses "servers", not "mcpServers"
     file: () => path.join(process.cwd(), ".vscode", "mcp.json"),
   },
+  copilot: {
+    label: "GitHub Copilot CLI (global)",
+    format: "json",
+    key: "mcpServers",
+    file: () => path.join(os.homedir(), ".copilot", "mcp-config.json"),
+  },
   codex: {
     label: "Codex (OpenAI)",
     format: "toml",
@@ -371,7 +377,7 @@ if (cmd === "--version" || cmd === "-v") {
 
 if (cmd === "serve" || cmd === "mcp-server") {
   await import("../mcp/server.js");
-  await new Promise(() => {});
+  await new Promise(() => { });
 }
 
 if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {

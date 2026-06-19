@@ -52,6 +52,13 @@ function wsBootstrap(slug) {
     if (extra !== undefined) e.extra = extra;
     logs.push(e);
     if (logs.length > MAX_LOGS) logs.shift();
+
+    // Log to standard browser console for visibility/debugging
+    var consoleMsg = "[wf-" + src + "] [" + level + "] [" + mod + "] " + msg;
+    if (extra) consoleMsg += " " + JSON.stringify(extra);
+    if (level === "ERR") console.error(consoleMsg);
+    else if (level === "WARN") console.warn(consoleMsg);
+    else console.log(consoleMsg);
   }
   function bLog(level, msg, extra) { logPush("browser", level, "ws", msg, extra); }
 
@@ -87,7 +94,8 @@ function wsBootstrap(slug) {
   function connect() {
     bLog("INFO", "connecting", { host: location.host, slug: slug });
     try {
-      ws = new WebSocket("ws://" + location.host + "/ws?feature=" + encodeURIComponent(slug));
+      var proto = location.protocol === "https:" ? "wss:" : "ws:";
+      ws = new WebSocket(proto + "//" + location.host + "/ws?feature=" + encodeURIComponent(slug));
     } catch (e) { bLog("ERR", "WebSocket constructor failed", { error: e.message }); return; }
     ws.onopen = function () {
       ready = true;

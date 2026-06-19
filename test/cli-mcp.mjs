@@ -67,6 +67,13 @@ assert.ok(obj.servers && obj.servers["wireframe-preview"], "vscode uses servers 
 assert.ok(!obj.mcpServers, "vscode has no mcpServers key");
 console.log("✓ mcp vscode → .vscode/mcp.json with `servers` key");
 
+// 5.5 copilot / github uses "mcpServers" key in ~/.copilot/mcp-config.json
+d = tmp();
+run(["mcp", "copilot"], d);
+obj = readJson(path.join(d, ".copilot", "mcp-config.json"));
+assert.ok(obj.mcpServers && obj.mcpServers["wireframe-preview"], "copilot uses mcpServers key");
+console.log("✓ mcp copilot → ~/.copilot/mcp-config.json with `mcpServers` key");
+
 // 6. codex is print-only (TOML) — writes nothing
 d = tmp();
 const out6 = run(["mcp", "codex"], d);
