@@ -1,6 +1,6 @@
 // App header: brand, screen tabs, mode toggle, dark-mode toggle, flow toggle.
 
-import type { WFFlow, WFScreen } from "../types";
+import type { WFFlow, WFModal, WFScreen } from "../types";
 import type { Mode } from "../hooks/useNav";
 import { ScreenTabs } from "./ScreenTabs";
 import { ModeToggle } from "./ModeToggle";
@@ -18,6 +18,7 @@ function BrandMark() {
 export function Header(props: {
   feature: string;
   screens: WFScreen[];
+  modals?: WFModal[];
   screenId: string;
   badgeCount: (screenName: string) => number;
   onGoto: (id: string) => void;
@@ -42,6 +43,7 @@ export function Header(props: {
       {/* Screen tabs — fills remaining space */}
       <ScreenTabs
         screens={props.screens}
+        modals={props.modals}
         screenId={props.screenId}
         badgeCount={props.badgeCount}
         onGoto={props.onGoto}

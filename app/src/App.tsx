@@ -20,6 +20,7 @@ import { Header } from "./ui/Header";
 import { Canvas } from "./ui/Canvas";
 import { ReviewSidebar } from "./ui/ReviewSidebar";
 import { Modal } from "./ui/Modal";
+import { ModalPreview } from "./ui/ModalPreview";
 import { CommentPopover } from "./ui/CommentPopover";
 import { FlowMap } from "./ui/FlowMap";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -120,6 +121,12 @@ export function App(props: {
     () => (model.modals || []).find((m) => m.id === nav.modalId),
     [model, nav.modalId],
   );
+  // Modal tab selected: screenId == "modal:<id>" → show inline preview
+  const activeModalPreview = useMemo(() => {
+    if (!nav.screenId?.startsWith("modal:")) return undefined;
+    const id = nav.screenId.slice(6);
+    return (model.modals || []).find((m) => m.id === id);
+  }, [model, nav.screenId]);
 
   const badgeCount = (screenName: string) =>
     order.filter((id) => comments[id] && metaOf(id)?.screen === screenName).length;
@@ -136,7 +143,7 @@ export function App(props: {
     <TooltipProvider delayDuration={150}>
       <div className="wf-app flex h-screen flex-col" data-mode={nav.mode}>
         <Header
-          feature={model.feature} screens={model.screens} screenId={nav.screenId}
+          feature={model.feature} screens={model.screens} modals={model.modals} screenId={nav.screenId}
           badgeCount={badgeCount} onGoto={gotoScreen}
           mode={nav.mode} onMode={setMode}
           theme={theme} onTheme={toggleTheme}
@@ -147,7 +154,9 @@ export function App(props: {
         )}
 
         <div className="flex min-h-0 flex-1">
-          <Canvas screen={activeScreen} state={activeState} onSetState={setState} actions={actions} />
+          {activeModalPreview
+            ? <ModalPreview modal={activeModalPreview} actions={actions} />
+            : <Canvas screen={activeScreen} state={activeState} onSetState={setState} actions={actions} />}
           <ReviewSidebar
             model={model} comments={comments} order={order}
             connected={connected}
