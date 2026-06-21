@@ -4,17 +4,19 @@ import { FlowTag } from "../../FlowTag";
 import { useWF, handleClick } from "../../context";
 import { modClasses } from "../../util";
 import { withAnnotation } from "../../Box";
+import { useSketchBorder } from "../../SketchBorder";
 
 export function FormBox(props: { node: WFNode & { _id?: string } }) {
   const wf = useWF();
   const n = props.node;
+  const sketchBorder = useSketchBorder();
   const fields = n.fields || [];
 
   const fcols = Math.max(...fields.map((f) => f.cols || 1), 1);
 
   const box = (
     <div
-      className={"wf-box wf-form-box " + modClasses(n)}
+      className={"wf-box wf-form-box flex flex-col items-stretch justify-start text-left p-4 w-full " + modClasses(n)}
       data-wf-id={n._id}
       data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
       data-kind={n.kind}
@@ -22,37 +24,38 @@ export function FormBox(props: { node: WFNode & { _id?: string } }) {
       data-ds={n.ds}
       onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
     >
+      {sketchBorder}
       <Pin id={n._id} />
-      <div className="wf-form-content">
+      <div className="wf-form-content flex flex-col gap-3 w-full">
         {n.label && <span className="wf-form-title">{n.label}</span>}
         <div
-          className="wf-form-grid"
-          style={{ "--fcols": fcols } as React.CSSProperties}
+          className="grid gap-3 w-full"
+          style={{ gridTemplateColumns: `repeat(${fcols}, minmax(0, 1fr))` }}
         >
           {fields.map((f, idx) => {
             const fieldType = f.type || "text";
             return (
               <div 
                 key={idx} 
-                className={`wf-form-field wf-field-type-${fieldType}`}
+                className={`wf-form-field flex flex-col gap-1 w-full wf-field-type-${fieldType}`}
                 style={f.cols ? { gridColumn: `span ${f.cols}` } : undefined}
               >
                 <label className="wf-field-label">{f.label}</label>
                 {fieldType === "text" && (
-                  <div className="wf-field-input wf-input-text" />
+                  <div className="wf-field-input wf-input-text h-8 w-full relative" />
                 )}
                 {fieldType === "select" && (
-                  <div className="wf-field-input wf-input-select">
+                  <div className="wf-field-input wf-input-select h-8 w-full relative flex items-center justify-end pr-2">
                     <span className="wf-select-arrow">▾</span>
                   </div>
                 )}
                 {fieldType === "textarea" && (
-                  <div className="wf-field-input wf-input-textarea" />
+                  <div className="wf-field-input wf-input-textarea h-16 w-full relative" />
                 )}
                 {fieldType === "toggle" && (
-                  <div className="wf-field-toggle-container">
-                    <div className={"wf-toggle-switch" + (f.checked ? " wf-toggle-checked" : "")}>
-                      <div className="wf-toggle-knob" />
+                  <div className="wf-field-toggle-container flex items-center h-8">
+                    <div className={"wf-toggle-switch w-9 h-5 relative p-0.5" + (f.checked ? " wf-toggle-checked" : "")}>
+                      <div className="wf-toggle-knob w-3.5 h-3.5" />
                     </div>
                   </div>
                 )}
@@ -81,9 +84,9 @@ export function FormBox(props: { node: WFNode & { _id?: string } }) {
           })}
         </div>
         {n.submitLabel && (
-          <div className="wf-form-footer">
+          <div className="wf-form-footer flex justify-end pt-1">
             <div
-              className="wf-box wf-button-box wf-solid"
+              className="wf-box wf-button-box wf-solid rounded-[6px] py-1 px-2 min-h-[26px] inline-flex items-center justify-center self-start h-max"
               style={{ alignSelf: "flex-end" }}
               data-kind="button"
             >

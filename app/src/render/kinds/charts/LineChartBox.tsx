@@ -4,10 +4,12 @@ import { FlowTag } from "../../FlowTag";
 import { useWF, handleClick } from "../../context";
 import { modClasses } from "../../util";
 import { withAnnotation } from "../../Box";
+import { useSketchBorder } from "../../SketchBorder";
 
 export function LineChartBox(props: { node: WFNode & { _id?: string } }) {
   const wf = useWF();
   const n = props.node;
+  const sketchBorder = useSketchBorder();
 
   // Default sinusoidal / wave trend data
   const defaultData = [
@@ -61,11 +63,12 @@ export function LineChartBox(props: { node: WFNode & { _id?: string } }) {
       data-ds={n.ds}
       onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
     >
+      {sketchBorder}
       <Pin id={n._id} />
-      <div className="wf-chart-container">
+      <div className="wf-chart-container flex flex-col w-full h-full gap-2 items-stretch">
         {n.label && <span className="wf-chart-label">{n.label}</span>}
-        <div className="wf-chart-body wf-linechart-body">
-          <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="wf-linechart-svg">
+        <div className="wf-chart-body wf-linechart-body flex items-center justify-center">
+          <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="wf-linechart-svg w-full h-full max-h-[140px] overflow-visible">
             {/* Grid & Axis Lines */}
             <line
               x1={paddingLeft}

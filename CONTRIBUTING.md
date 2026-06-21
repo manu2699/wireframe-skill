@@ -71,7 +71,7 @@ assets/
   wireframe.css   Frozen stylesheet (copied verbatim per wireframe)
   DESIGN.md       Scaffold for the project-level design system vocabulary
   feature-spec.md Scaffold for the shared feature spec
-  dist/           Build output — wireframe-app.js (generated, committed)
+  dist/           Build output — wireframe-app.js (generated, ignored)
 
 bin/cli.js        CLI: install / uninstall / mcp / list commands
 mcp/
@@ -211,7 +211,7 @@ Iterate with `npm run dev` (HMR). When the behavior is right, rebuild the shippe
 npm run build
 ```
 
-This emits a new `assets/dist/wireframe-app.js`. Commit both the source change and the rebuilt bundle. The bundle is committed so consumers get a working artifact without a build step.
+This emits a new `assets/dist/wireframe-app.js`. Build outputs are ignored in Git and automatically built/compiled during package installation or publication.
 
 Key constraints:
 - The renderer must work from `file://` (standalone) and from the MCP `http://` server.
@@ -263,7 +263,7 @@ node test/serve-demo.mjs   # boots MCP, prints URL — verify against the real h
 ## Pull request guidelines
 
 - One concern per PR — don't bundle unrelated changes.
-- If you change `app/src/`, run `npx tsc --noEmit` and include the rebuilt `assets/dist/wireframe-app.js` in the same commit.
+- If you change `app/src/`, run `npx tsc --noEmit` to verify type safety. (No need to commit the built files as they are ignored).
 - If you change `wireframe.css`, verify the rendered output still looks correct (`npm run dev`, or `node test/serve-demo.mjs` for the harness path).
 - Update `SKILL.md` if you add or change anything that affects how agents author the JSON model.
 - No new dependencies without a good reason — the runtime dep list should stay minimal.

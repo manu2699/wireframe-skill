@@ -4,10 +4,12 @@ import { FlowTag } from "../../FlowTag";
 import { useWF, handleClick } from "../../context";
 import { modClasses } from "../../util";
 import { withAnnotation } from "../../Box";
+import { useSketchBorder } from "../../SketchBorder";
 
 export function DonutChartBox(props: { node: WFNode & { _id?: string } }) {
   const wf = useWF();
   const n = props.node;
+  const sketchBorder = useSketchBorder();
 
   const defaultData = [
     { label: "Category A", value: 60 },
@@ -30,13 +32,14 @@ export function DonutChartBox(props: { node: WFNode & { _id?: string } }) {
       data-ds={n.ds}
       onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
     >
+      {sketchBorder}
       <Pin id={n._id} />
-      <div className="wf-chart-container">
+      <div className="wf-chart-container flex flex-col w-full h-full gap-2 items-stretch">
         {n.label && <span className="wf-chart-label">{n.label}</span>}
-        <div className="wf-chart-body wf-donutchart-body">
-          <div className="wf-donut-chart-wrapper">
-            <div className="wf-donut-svg-container">
-              <svg viewBox="0 0 40 40" className="wf-donut-svg">
+        <div className="wf-chart-body wf-donutchart-body flex items-center justify-center">
+          <div className="wf-donut-chart-wrapper flex flex-row items-center justify-center gap-6 w-full">
+            <div className="wf-donut-svg-container relative w-[90px] h-[90px] shrink-0">
+              <svg viewBox="0 0 40 40" className="wf-donut-svg w-full h-full -rotate-90">
                 <circle
                   cx="20"
                   cy="20"
@@ -49,7 +52,7 @@ export function DonutChartBox(props: { node: WFNode & { _id?: string } }) {
                   const pct = (d.value / sum) * 100;
                   const dashOffset = 100 - accumulated;
                   accumulated += pct;
-
+ 
                   return (
                     <circle
                       key={i}
@@ -67,14 +70,14 @@ export function DonutChartBox(props: { node: WFNode & { _id?: string } }) {
                   );
                 })}
               </svg>
-              <div className="wf-donut-center">
+              <div className="wf-donut-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center">
                 <span className="wf-donut-center-value">{n.value || sum}</span>
                 <span className="wf-donut-center-label">{n.subtitle || "Total"}</span>
               </div>
             </div>
-            <div className="wf-donut-legend">
+            <div className="wf-donut-legend flex flex-col gap-1.5 text-left min-w-0 flex-1">
               {data.map((d, i) => (
-                <div key={i} className="wf-donut-legend-item">
+                <div key={i} className="wf-donut-legend-item flex items-center gap-2">
                   <span
                     className="wf-donut-legend-indicator"
                     style={{ opacity: 1 - i * 0.25 }}

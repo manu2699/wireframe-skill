@@ -11,9 +11,10 @@ import { Glyph } from "./Glyph";
 import { Pin } from "./Pin";
 import { FlowTag } from "./FlowTag";
 import { useWF, handleClick } from "./context";
-import { modClasses } from "./util";
+import { modClasses, layoutClasses } from "./util";
 import { Tooltip, TooltipTrigger, TooltipContent } from "../components/ui/tooltip";
 import { Server, Component, Sparkle } from "../components/ui/icons";
+import { SketchBorder } from "./SketchBorder";
 import { ButtonBox } from "./kinds/content/ButtonBox";
 import { HeadingBox } from "./kinds/content/HeadingBox";
 import { BadgeBox } from "./kinds/content/BadgeBox";
@@ -91,6 +92,7 @@ const KIND_RENDERERS: Record<string, (props: { node: BoxNode }) => ReactNode | n
 export function Box(props: { node: BoxNode }) {
   const wf = useWF();
   const n = props.node;
+  const sketch = wf.drawMode() === "sketch";
 
   if (n.kind && KIND_RENDERERS[n.kind]) {
     const rendered = KIND_RENDERERS[n.kind]({ node: n });
@@ -99,11 +101,28 @@ export function Box(props: { node: BoxNode }) {
     }
   }
 
+  const hasGapMod = n.mods?.some((m) => m === "compact" || m === "loose");
+  const hasAlignMod = n.mods?.some((m) => m === "middle");
+  const hasJustifyMod = n.mods?.some((m) => m === "center" || m === "end" || m === "between");
+  const hasHeightMod = n.mods?.some((m) => m === "tall" || m === "taller");
+
   // 3. children present -> render children in box frame
   if (n.children && n.children.length > 0) {
+    const boxCls = [
+      "wf-box",
+      n.kind ? "wf-kind" : "",
+      "flex flex-col text-left p-3.5",
+      hasAlignMod ? "" : "items-stretch",
+      hasJustifyMod ? "" : "justify-start",
+      hasGapMod ? "" : "gap-3",
+      hasHeightMod ? "" : (n.kind ? "min-h-[76px]" : "min-h-[40px]"),
+      layoutClasses(n),
+      modClasses(n),
+    ].filter(Boolean).join(" ");
+
     const box = (
       <div
-        className={"wf-box wf-box-with-children " + (n.kind ? "wf-kind " : "") + modClasses(n)}
+        className={boxCls}
         data-wf-id={n._id}
         data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
         data-kind={n.kind}
@@ -111,6 +130,7 @@ export function Box(props: { node: BoxNode }) {
         data-ds={n.ds}
         onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
       >
+        {sketch && <SketchBorder />}
         <Pin id={n._id} />
         {n.new && <span className="wf-new-badge">✦ new</span>}
         {n.changed && <span className="wf-changed-badge">~ changed</span>}
@@ -124,9 +144,19 @@ export function Box(props: { node: BoxNode }) {
   }
 
   // 4 & 5. Fallback / default behavior
+  const boxCls = [
+    "wf-box",
+    n.kind ? "wf-kind flex-col gap-2" : "",
+    "flex items-center text-center px-3 py-3.5",
+    hasJustifyMod ? "" : "justify-center",
+    hasHeightMod ? "" : (n.kind ? "min-h-[76px]" : "min-h-[40px]"),
+    layoutClasses(n),
+    modClasses(n),
+  ].filter(Boolean).join(" ");
+
   const box = (
     <div
-      className={"wf-box " + (n.kind ? "wf-kind " : "") + modClasses(n)}
+      className={boxCls}
       data-wf-id={n._id}
       data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
       data-kind={n.kind}
@@ -134,10 +164,11 @@ export function Box(props: { node: BoxNode }) {
       data-ds={n.ds}
       onClick={(e) => handleClick(wf, n._id, n.goto, n.opens, e)}
     >
+      {sketch && <SketchBorder />}
       <Pin id={n._id} />
       {n.new && <span className="wf-new-badge">✦ new</span>}
       {n.changed && <span className="wf-changed-badge">~ changed</span>}
-      <Glyph kind={n.kind} />
+      <Glyph kind={n.kind} mods={n.mods} />
       {n.label && <span className="wf-box-label">{n.label}</span>}
       <FlowTag goto={n.goto} opens={n.opens} action={n.action} />
     </div>

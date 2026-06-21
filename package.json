@@ -1,6 +1,6 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tailwindcss -i app/styles/index.css -o assets/wireframe.css --minify && vite build",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "node test/smoke.mjs && node test/cli-mcp.mjs"
   },
@@ -32,7 +33,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "motion": "^12.40.0"
   },
   "devDependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -49,6 +51,7 @@
     "clsx": "^2.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "roughjs": "^4.6.6",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.0.0",
