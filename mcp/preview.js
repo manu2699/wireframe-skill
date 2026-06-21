@@ -224,9 +224,10 @@ function composeHtml(slug) {
   const f = store.get(slug);
   if (!f.model) return null;
 
+  const modelJson = JSON.stringify(f.model, null, 2);
   let html = TEMPLATE_HTML.replace(
     /(<script[^>]+id="wf-model"[^>]*>)([\s\S]*?)(<\/script>)/,
-    `$1\n${JSON.stringify(f.model, null, 2)}\n$3`,
+    (_, open, _inner, close) => `${open}\n${modelJson}\n${close}`,
   );
   const boot = sseBootstrap(slug);
   html = html.includes("</body>")

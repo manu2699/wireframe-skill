@@ -27,7 +27,7 @@ run(["mcp", "cursor"], d);
 let cfg = path.join(d, ".cursor", "mcp.json");
 let obj = readJson(cfg);
 assert.ok(obj.mcpServers["wireframe-preview"].args.includes("serve"), "cursor registered");
-console.log("✓ mcp cursor → .cursor/mcp.json with wireframe-mcp");
+console.log("✓ mcp cursor → .cursor/mcp.json with wireframe-preview");
 
 // 2. idempotent rerun → byte-identical + "already registered"
 const before = fs.readFileSync(cfg, "utf8");

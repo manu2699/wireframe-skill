@@ -33,6 +33,7 @@ export type Kind =
   | "upload"
   | "radio-group"
   | "checkbox-group"
+  | "select"
   | "alert"
   | "modal"
   | "notification-list"

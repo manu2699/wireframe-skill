@@ -169,6 +169,12 @@ const glyphs: Partial<Record<Kind, (sizeClass?: string) => ReactNode>> = {
       <path d="M19.5 15v4M17.5 17l2-2 2 2" strokeOpacity="0.5" />
       <rect x="10" y="6" width="44" height="28" rx="2" strokeDasharray="3 3" strokeOpacity="0.4" />
     </>, sz),
+  select: (sz) =>
+    S(<>
+      <rect x="10" y="13" width="44" height="14" rx="2" strokeOpacity="0.5" />
+      <path d="M46 19 l2 2 -2 2" transform="rotate(90 48 20)" strokeOpacity="0.6" />
+      <line x1="40" y1="14" x2="40" y2="26" strokeOpacity="0.25" />
+    </>, sz),
   "radio-group": (sz) =>
     S(<>
       <circle cx="16" cy="12" r="3" strokeOpacity="0.5" />

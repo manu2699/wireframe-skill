@@ -27,6 +27,7 @@ import { RadioGroupBox } from "./kinds/inputs/RadioGroupBox";
 import { CheckboxGroupBox } from "./kinds/inputs/CheckboxGroupBox";
 import { ToggleBox } from "./kinds/inputs/ToggleBox";
 import { SearchBox } from "./kinds/inputs/SearchBox";
+import { SelectBox } from "./kinds/inputs/SelectBox";
 import { UploadBox } from "./kinds/inputs/UploadBox";
 import { RatingBox } from "./kinds/inputs/RatingBox";
 import { FormBox } from "./kinds/layout/FormBox";
@@ -67,6 +68,7 @@ const KIND_RENDERERS: Record<string, (props: { node: BoxNode }) => ReactNode | n
   tabs: (props) => (props.node.tabs && props.node.tabs.length > 0 ? <TabsBox node={props.node} /> : null),
   avatar: (props) => (props.node.initials !== undefined ? <AvatarBox node={props.node} /> : null),
   search: (props) => <SearchBox node={props.node} />,
+  select: (props) => <SelectBox node={props.node} />,
   breadcrumb: (props) => (props.node.crumbs && props.node.crumbs.length > 0 ? <BreadcrumbBox node={props.node} /> : null),
   stepper: (props) => (props.node.steps && props.node.steps.length > 0 ? <StepperBox node={props.node} /> : null),
   accordion: (props) => (props.node.sections && props.node.sections.length > 0 ? <AccordionBox node={props.node} /> : null),
