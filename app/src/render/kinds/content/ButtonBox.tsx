@@ -13,7 +13,7 @@ export function ButtonBox(props: { node: WFNode & { _id?: string } }) {
 
   const box = (
     <div
-      className={"wf-box wf-button-box rounded-[6px] py-1 px-2 min-h-[26px] inline-flex items-center justify-center self-start h-max " + modClasses(n)}
+      className={"wf-box wf-button-box rounded-[6px] py-2.5 px-5 min-h-[40px] inline-flex items-center justify-center self-start h-max " + modClasses(n)}
       data-wf-id={n._id}
       data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
       data-kind={n.kind}

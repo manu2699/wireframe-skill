@@ -14,7 +14,10 @@ export function StepperBox(props: { node: WFNode & { _id?: string } }) {
 
   const box = (
     <div
-      className={"wf-box wf-stepper-box flex flex-col justify-center items-stretch py-2 px-3 min-h-0 " + modClasses(n)}
+      className={
+        "wf-box wf-stepper-box flex flex-col justify-center items-stretch py-2 px-3 min-h-0 " +
+        modClasses(n)
+      }
       data-wf-id={n._id}
       data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
       data-kind={n.kind}
@@ -41,15 +44,29 @@ export function StepperBox(props: { node: WFNode & { _id?: string } }) {
           }
 
           return (
-            <div key={i} className={"wf-stepper-step-wrapper flex items-center gap-2 " + (isLast ? "flex-none" : "flex-1")}>
-              <div className={"wf-stepper-step flex items-center gap-1.5 whitespace-nowrap " + statusClass}>
-                <span className="wf-step-icon leading-none">{circleIndicator}</span>
+            <div
+              key={i}
+              className={
+                "wf-stepper-step-wrapper flex items-center gap-2 " +
+                (isLast ? "flex-none" : "flex-1")
+              }
+            >
+              <div
+                className={
+                  "wf-stepper-step flex items-center gap-1.5 whitespace-nowrap " +
+                  statusClass
+                }
+              >
+                <span className="wf-step-icon leading-none">
+                  {circleIndicator}
+                </span>
                 <span className="wf-step-label">{step}</span>
               </div>
               {!isLast && (
                 <div
                   className={
-                    "wf-stepper-connector h-[2px] flex-1 min-w-[16px]" + (i < activeStep ? " wf-connector-filled" : "")
+                    "wf-stepper-connector h-[2px] flex-1 min-w-[16px]" +
+                    (i < activeStep ? " wf-connector-filled" : "")
                   }
                 />
               )}

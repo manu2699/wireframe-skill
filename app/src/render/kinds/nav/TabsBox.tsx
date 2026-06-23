@@ -15,7 +15,7 @@ export function TabsBox(props: { node: WFNode & { _id?: string } }) {
 
   const box = (
     <div
-      className={"wf-box wf-tabs-box flex flex-row items-center justify-start px-3 py-0 min-h-[40px] w-full overflow-x-auto " + modClasses(n)}
+      className={"wf-box wf-tabs-box flex flex-row items-center justify-start px-3 py-0 min-h-[40px] w-full " + modClasses(n)}
       data-wf-id={n._id}
       data-wf-commented={wf.pinOf(n._id) > 0 ? "1" : undefined}
       data-kind={n.kind}
@@ -25,7 +25,7 @@ export function TabsBox(props: { node: WFNode & { _id?: string } }) {
     >
       {sketchBorder}
       <Pin id={n._id} />
-      <div className="wf-tabs-container flex flex-row gap-4 w-full h-full items-center">
+      <div className="wf-tabs-container flex flex-row gap-4 w-full h-full items-center overflow-x-auto">
         {tabs.map((tab, idx) => {
           const isActive = idx === activeTab;
           return (

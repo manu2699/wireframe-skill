@@ -35,7 +35,7 @@ export function SliderBox(props: { node: WFNode & { _id?: string } }) {
         </div>
         <div className="wf-slider-track h-1 w-full relative rounded-[2px]">
           <div className="wf-slider-track-fill h-full rounded-[2px]" style={{ width: `${pct}%` }} />
-          <div className="wf-slider-thumb w-3 h-3 absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${pct}%` }} />
+          <div className="wf-slider-thumb w-3 h-3 absolute top-1/2 rounded-full" style={{ left: `${pct}%` }} />
         </div>
       </div>
       <FlowTag goto={n.goto} opens={n.opens} action={n.action} />

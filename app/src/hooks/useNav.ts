@@ -11,7 +11,7 @@ const DRAW_MODE_KEY = "wfc:draw-mode";
 
 function readDrawMode(): DrawMode {
   try {
-    return localStorage.getItem(DRAW_MODE_KEY) === "sketch" ? "sketch" : "clean";
+    return localStorage.getItem(DRAW_MODE_KEY) === "clean" ? "clean" : "sketch";
   } catch {
     return "clean";
   }

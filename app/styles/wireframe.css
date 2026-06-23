@@ -228,6 +228,12 @@
     font-size: 1.12em;
     color: var(--wf-ink);
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.12em;
+    height: 1.12em;
+    vertical-align: middle;
   }
 
   /* Check/radio indicator label — 0.88em / muted / 600 (identical between kinds) */
@@ -283,19 +289,21 @@
   .wf-box.wf-button-box {
     font-family: var(--wf-c-sans);
     font-weight: 600;
-    font-size: 0.96em;
+    font-size: 1.05em;
     border-style: solid;
-    border-color: var(--wf-line);
+    background: var(--wf-ink) !important;
+    color: var(--wf-bg) !important;
+    border-color: var(--wf-ink);
     cursor: pointer;
 
     &.wf-solid {
-      background: var(--wf-ink);
-      color: var(--wf-bg);
+      background: var(--wf-ink) !important;
+      color: var(--wf-bg) !important;
       border-color: var(--wf-ink);
     }
 
     &:hover {
-      border-color: var(--wf-ink);
+      opacity: 0.85;
     }
   }
 
@@ -413,6 +421,8 @@
     border: 1px solid var(--wf-line);
     border-radius: 999px;
     transition: background 0.1s ease;
+    display: flex;
+    align-items: center;
   }
 
   .wf-toggle-knob {
@@ -569,6 +579,12 @@
   .wf-step-icon {
     font-size: 1.12em;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.12em;
+    height: 1.12em;
+    vertical-align: middle;
   }
 
   .wf-step-done {
@@ -1037,9 +1053,13 @@
       letter-spacing: 0.2ch;
     }
 
-    /* Hide CSS border where rough.js SVG border exists */
+    /* rough.js SVG replaces CSS border; fill handles background at z:-1 */
     & .wf-box:has(> svg.wf-sketch-border) {
       border-color: transparent;
+      isolation: isolate;
+    }
+    & .wf-box:has(> svg.wf-sketch-border):not(.wf-button-box):not(.wf-badge-box):not(.wf-nav-active) {
+      background: none;
     }
 
     /* Flow boxes keep their accent colour */
@@ -1049,6 +1069,13 @@
 
     & .wf-box-label {
       letter-spacing: 0.03em;
+    }
+
+    & .wf-heading-box {
+      &.wf-h1 .wf-heading-label { letter-spacing: 0.06em; }
+      &.wf-h2 .wf-heading-label { letter-spacing: 0.05em; }
+      &.wf-h3 .wf-heading-label { letter-spacing: 0.04em; }
+      &.wf-h4 .wf-heading-label { letter-spacing: 0.03em; }
     }
   }
 

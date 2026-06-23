@@ -20,8 +20,8 @@ interface Props {
 }
 
 export function SketchBorder({
-  fill = "none",
-  stroke = "#3f3f46",
+  fill,
+  stroke,
   strokeWidth = 1.125,
   roughness = 1.125,
   bowing = 1.4,
@@ -33,36 +33,57 @@ export function SketchBorder({
     const parent = svg?.parentElement;
     if (!svg || !parent) return;
 
+    let prevW = 0;
+    let prevH = 0;
+    let raf = 0;
+
     const redraw = () => {
+      raf = 0;
       const w = parent.offsetWidth;
       const h = parent.offsetHeight;
       if (!w || !h) return;
+      if (w === prevW && h === prevH) return;
+      prevW = w;
+      prevH = h;
 
       svg.setAttribute("width", String(w));
       svg.setAttribute("height", String(h));
       svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
 
-      // Clear previous drawing
       while (svg.firstChild) svg.removeChild(svg.firstChild);
 
+      const styles = getComputedStyle(parent);
+      const resolvedStroke = stroke ?? styles.color;
+      const parentBg = styles.backgroundColor;
+      const hasOwnBg = parentBg && parentBg !== "rgba(0, 0, 0, 0)" && parentBg !== "transparent";
+      const resolvedFill = fill ?? (hasOwnBg ? parentBg : (styles.getPropertyValue("--wf-bg").trim() || "none"));
+
       const rc = rough.svg(svg);
-      const pad = strokeWidth + 1;
-      const shape = rc.rectangle(pad, pad, w - pad * 2, h - pad * 2, {
-        roughness,
-        bowing,
-        stroke,
-        strokeWidth,
-        fill,
-        fillStyle: "solid",
-        seed: Math.floor(w * 3 + h * 7), // stable per-box seed based on size
-      });
+      const pad = strokeWidth / 2 + 0.5;
+      const shape = rc.rectangle(
+        pad, pad,
+        w - pad * 2, h - pad * 2,
+        {
+          roughness,
+          bowing,
+          stroke: resolvedStroke,
+          strokeWidth,
+          fill: resolvedFill,
+          fillStyle: "solid",
+          seed: Math.floor(w * 3 + h * 7),
+        },
+      );
       svg.appendChild(shape);
     };
 
+    const scheduleRedraw = () => {
+      if (!raf) raf = requestAnimationFrame(redraw);
+    };
+
     redraw();
-    const ro = new ResizeObserver(redraw);
+    const ro = new ResizeObserver(scheduleRedraw);
     ro.observe(parent);
-    return () => ro.disconnect();
+    return () => { ro.disconnect(); if (raf) cancelAnimationFrame(raf); };
   }, [fill, stroke, strokeWidth, roughness, bowing]);
 
   return (
@@ -74,8 +95,8 @@ export function SketchBorder({
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        overflow: "visible",
-        zIndex: 0,
+        overflow: "hidden",
+        zIndex: -1,
       }}
     />
   );
