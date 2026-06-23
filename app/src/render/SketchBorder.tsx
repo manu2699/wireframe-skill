@@ -83,7 +83,10 @@ export function SketchBorder({
     redraw();
     const ro = new ResizeObserver(scheduleRedraw);
     ro.observe(parent);
-    return () => { ro.disconnect(); if (raf) cancelAnimationFrame(raf); };
+    const forceRedraw = () => { prevW = 0; prevH = 0; scheduleRedraw(); };
+    const mo = new MutationObserver(forceRedraw);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => { ro.disconnect(); mo.disconnect(); if (raf) cancelAnimationFrame(raf); };
   }, [fill, stroke, strokeWidth, roughness, bowing]);
 
   return (

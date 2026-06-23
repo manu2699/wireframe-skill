@@ -1,8 +1,8 @@
 # wireframe-preview
 
-> Generate fast, monochrome mid-fidelity wireframes from inside your AI agent — no design tools, no boilerplate.
+> Generate fast, monochrome mid-fidelity wireframes from inside your AI agent.
 
-You describe a feature (or point at a spec file). The agent proposes screens, you approve, and a prebuilt React app opens in your browser showing tabs, states, nav, kind glyphs, and a clickable prototype. Feedback flows back to the agent over MCP or clipboard — no files written to your project.
+You describe a feature (or point at a spec file). The agent proposes screens, you approve, and a prebuilt React app opens in your browser showing tabs, states, nav, kind glyphs, and a clickable prototype. Feedback flows back to the agent over MCP or clipboard.
 
 Pairs with [feature-spec](https://npmjs.com/package/feature-spec): that skill produces a structured `docs/specs/<feature>.md`, this one consumes it.
 
@@ -41,7 +41,7 @@ npx wireframe-preview list                 # list all supported platforms
 
 ## MCP server (optional, recommended for local harnesses)
 
-The skill works without MCP using clipboard copy-paste. With MCP, the browser streams feedback directly back to the agent — no paste step.
+The skill works without MCP using clipboard copy-paste. With MCP, the browser streams feedback directly back to the agent.
 
 Register the server in your harness after installing the skill:
 
@@ -139,7 +139,7 @@ npm run build  # Tailwind → assets/wireframe.css, Vite → assets/dist/wirefra
 npm test       # node test/smoke.mjs && node test/cli-mcp.mjs
 ```
 
-Agents never edit `app/src/`, `wireframe.css`, or `wireframe-app.js` — only the JSON model passed to the MCP tools. See [CLAUDE.md](CLAUDE.md) for architecture details.
+Agents never edit `app/src/`, `wireframe.css`, or `wireframe-app.js` -- only the JSON model passed to the MCP tools. See [CLAUDE.md](CLAUDE.md) for architecture details.
 
 ---
 

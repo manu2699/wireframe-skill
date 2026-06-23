@@ -60,7 +60,7 @@ export function FormBox(props: { node: WFNode & { _id?: string } }) {
                   </div>
                 )}
                 {fieldType === "datepicker" && (
-                  <div className="wf-field-input wf-datepicker-field" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 10px", height: "32px", border: "1px solid var(--wf-line)", borderRadius: "var(--wf-radius)", background: "#fff" }}>
+                  <div className="wf-field-input wf-datepicker-field flex justify-between items-center px-2.5 h-8">
                     <span className="wf-datepicker-value">{f.dateValue || "Select date..."}</span>
                     <svg className="wf-datepicker-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "14px", height: "14px", color: "var(--wf-muted)" }}>
                       <rect x="2" y="3" width="12" height="11" rx="1" />
@@ -71,7 +71,7 @@ export function FormBox(props: { node: WFNode & { _id?: string } }) {
                   </div>
                 )}
                 {fieldType === "upload" && (
-                  <div className="wf-field-input wf-upload-field" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80px", border: "1px dashed var(--wf-line)", borderRadius: "var(--wf-radius)", padding: "10px", background: "var(--wf-fill)", width: "100%" }}>
+                  <div className="wf-field-input wf-upload-field flex flex-col items-center justify-center min-h-[80px] p-2.5 w-full">
                     <svg className="wf-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "24px", height: "24px", color: "var(--wf-muted)", marginBottom: "4px" }}>
                       <path d="M18 10h-.7c-.3-2.5-2.4-4.5-4.9-4.5-2.2 0-4.1 1.5-4.7 3.6-2.1.3-3.7 2.1-3.7 4.3C4 15.8 6.2 18 9 18h9c2.2 0 4-1.8 4-4s-1.8-4-4-4z" />
                       <path d="M12 12v4M10 14l2-2 2 2" />

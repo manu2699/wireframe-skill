@@ -1,6 +1,6 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
@@ -15,7 +15,8 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tailwindcss -i app/styles/index.css -o assets/wireframe.css --minify && vite build",
+    "gen:sketch": "node scripts/gen-sketch-borders.mjs",
+    "build": "npm run gen:sketch && tailwindcss -i app/styles/index.css -o assets/wireframe.css --minify && vite build",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "node test/smoke.mjs && node test/cli-mcp.mjs"

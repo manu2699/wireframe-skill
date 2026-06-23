@@ -32,7 +32,7 @@ function SketchTableLines({ containerRef }: { containerRef: RefObject<HTMLDivEle
       const opts = { roughness: 1.125, strokeWidth: 1.0, bowing: 0.6, stroke };
 
       const rows = Array.from(container.children).filter(
-        (el) => (el as HTMLElement).tagName !== "SVG"
+        (el) => (el as HTMLElement).tagName.toUpperCase() !== "SVG"
       ) as HTMLElement[];
 
       // horizontal lines between rows (offsetTop relative to position:relative container)
