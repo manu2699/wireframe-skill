@@ -1,6 +1,6 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.22",
+  "version": "1.0.24",
   "description": "DEPRECATED: this package has moved to proto-frames. Run: npx proto-frames install",
   "type": "module",
   "bin": {
