@@ -1,7 +1,7 @@
 {
   "name": "wireframe-preview",
-  "version": "1.0.21",
-  "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
+  "version": "1.0.22",
+  "description": "DEPRECATED: this package has moved to proto-frames. Run: npx proto-frames install",
   "type": "module",
   "bin": {
     "wireframe-preview": "bin/cli.js",
