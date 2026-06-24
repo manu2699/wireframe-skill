@@ -102,7 +102,7 @@ export function Header(props: {
             className="text-[18px] font-semibold leading-none text-foreground"
             style={{ fontFamily: "'Patrick Hand', sans-serif", letterSpacing: "0.03em" }}
           >
-            protoframe
+            proto-frames
           </span>
           <span className="w-1 h-5 border-r border-gray-300" />
           <div className="flex items-center gap-1.5">

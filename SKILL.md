@@ -1,5 +1,5 @@
 ---
-name: proto-frame
+name: proto-frames
 description: Generate fast, monochrome mid-fidelity wireframes and clickable prototypes to preview the UI/UX implications of a feature or change. Use whenever someone describes a feature, backend change, new endpoint, new field, schema change, or user flow and wants to see how the front-end is affected — phrases like "what would the UI look like", "wireframe this", "prototype this flow", "preview the screens for", "mock up the front-end", or "show me the UX impact". Works for developers, PMs, designers, and QA, with or without a backend defined. Reads an optional shared feature-spec.md (intent, persona, screens, API) and a DESIGN.md if present, otherwise asks a few quick questions. You author ONLY a small JSON model (screens, nav, boxes, flow); a prebuilt app renders it as grey boxes + line-art glyphs with clickable screen transitions, modal overlays, and state switching. Monochrome only — shows layout, information architecture, and flow, never colors, spacing, real copy, or production styling. Prefer this over building real UI any time the goal is a quick structural + flow sanity-check rather than a buildable interface.
 ---
 

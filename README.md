@@ -1,4 +1,4 @@
-# proto-frame
+# proto-frames
 
 > Generate fast, monochrome mid-fidelity wireframes from inside your AI agent.
 
@@ -11,28 +11,28 @@ Pairs with [feature-spec](https://npmjs.com/package/feature-spec): that skill pr
 ## Install
 
 ```bash
-npx proto-frame install          # auto-detect agents in your project
+npx proto-frames install          # auto-detect agents in your project
 ```
 
 Or target a specific agent:
 
 ```bash
-npx proto-frame install claude          # Claude Code — global (~/.claude/skills/)
-npx proto-frame install claude-project  # Claude Code — project (.claude/skills/)
-npx proto-frame install cursor          # Cursor (.cursor/rules/)
-npx proto-frame install windsurf        # Windsurf (.windsurf/rules/)
-npx proto-frame install kilocode        # Kilocode (.kilocode/rules/)
-npx proto-frame install copilot         # GitHub Copilot (.github/copilot-instructions.md)
-npx proto-frame install amp-code        # Amp Code (~/.config/amp/settings.json)
-npx proto-frame install codex           # Codex (~/.codex/AGENTS.md)
-npx proto-frame install antigravity     # Antigravity (.agents/plugins/)
-npx proto-frame install agents          # Generic (.agents/skills/)
+npx proto-frames install claude          # Claude Code — global (~/.claude/skills/)
+npx proto-frames install claude-project  # Claude Code — project (.claude/skills/)
+npx proto-frames install cursor          # Cursor (.cursor/rules/)
+npx proto-frames install windsurf        # Windsurf (.windsurf/rules/)
+npx proto-frames install kilocode        # Kilocode (.kilocode/rules/)
+npx proto-frames install copilot         # GitHub Copilot (.github/copilot-instructions.md)
+npx proto-frames install amp-code        # Amp Code (~/.config/amp/settings.json)
+npx proto-frames install codex           # Codex (~/.codex/AGENTS.md)
+npx proto-frames install antigravity     # Antigravity (.agents/plugins/)
+npx proto-frames install agents          # Generic (.agents/skills/)
 ```
 
 ```bash
-npx proto-frame uninstall            # auto-detect and remove
-npx proto-frame uninstall cursor     # remove from one platform
-npx proto-frame list                 # list all supported platforms
+npx proto-frames uninstall            # auto-detect and remove
+npx proto-frames uninstall cursor     # remove from one platform
+npx proto-frames list                 # list all supported platforms
 ```
 
 > `pnpm dlx` and `bunx` work everywhere `npx` does.
@@ -46,19 +46,19 @@ The skill works without MCP using clipboard copy-paste. With MCP, the browser st
 Register the server in your harness after installing the skill:
 
 ```bash
-npx proto-frame mcp claude-project  # Claude Code → .mcp.json
-npx proto-frame mcp cursor          # Cursor → .cursor/mcp.json
-npx proto-frame mcp windsurf        # Windsurf → ~/.codeium/windsurf/mcp_config.json
-npx proto-frame mcp copilot         # GitHub Copilot (VS Code) → .vscode/mcp.json
-npx proto-frame mcp kilocode        # Kilocode → .kilocode/mcp.json
-npx proto-frame mcp amp-code        # Amp Code → ~/.config/amp/settings.json
-npx proto-frame mcp antigravity     # Antigravity → ~/.gemini/config/mcp_config.json
+npx proto-frames mcp claude-project  # Claude Code → .mcp.json
+npx proto-frames mcp cursor          # Cursor → .cursor/mcp.json
+npx proto-frames mcp windsurf        # Windsurf → ~/.codeium/windsurf/mcp_config.json
+npx proto-frames mcp copilot         # GitHub Copilot (VS Code) → .vscode/mcp.json
+npx proto-frames mcp kilocode        # Kilocode → .kilocode/mcp.json
+npx proto-frames mcp amp-code        # Amp Code → ~/.config/amp/settings.json
+npx proto-frames mcp antigravity     # Antigravity → ~/.gemini/config/mcp_config.json
 ```
 
 ```bash
-npx proto-frame mcp                 # print config snippet for every harness
-npx proto-frame mcp --print cursor  # print only, never edit
-npx proto-frame mcp --remove cursor # unregister
+npx proto-frames mcp                 # print config snippet for every harness
+npx proto-frames mcp --print cursor  # print only, never edit
+npx proto-frames mcp --remove cursor # unregister
 ```
 
 For harnesses with non-JSON configs (Codex TOML, Cline VS Code storage), the command prints the snippet for manual setup instead of editing.
@@ -82,7 +82,7 @@ For harnesses with non-JSON configs (Codex TOML, Cline VS Code storage), the com
 Once the skill is installed, invoke it inside your agent:
 
 ```
-/proto-frame
+/proto-frames
 ```
 
 Point it at whatever you have:
@@ -118,14 +118,14 @@ Strictly monochrome — layout, IA, and flow only. No colors, real copy, or prod
 
 ```bash
 npx feature-spec install        # install the spec skill
-npx proto-frame install   # install this skill
+npx proto-frames install   # install this skill
 ```
 
 Then in your agent:
 
 ```
 /feature-spec       → writes docs/specs/refund-flow.md
-/proto-frame  → reads it, proposes screens, opens wireframe
+/proto-frames  → reads it, proposes screens, opens wireframe
 ```
 
 ---

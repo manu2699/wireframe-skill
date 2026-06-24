@@ -14,7 +14,7 @@ Steps to reproduce the behavior.
 What you expected to happen.
 
 **Environment**
-- proto-frame version: (run `npx proto-frame --version` or check `package.json`)
+- proto-frames version: (run `npx proto-frames --version` or check `package.json`)
 - Node version: (run `node --version`)
 - Agent harness: (Claude Code / Cursor / Windsurf / etc.)
 - OS: 

@@ -1,11 +1,11 @@
 {
-  "name": "proto-frame",
+  "name": "proto-frames",
   "version": "0.1.0",
   "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
   "type": "module",
   "bin": {
-    "proto-frame": "bin/cli.js",
-    "proto-frame-mcp": "mcp/server.js"
+    "proto-frames": "bin/cli.js",
+    "proto-frames-mcp": "mcp/server.js"
   },
   "files": [
     "bin/",
