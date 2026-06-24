@@ -1,7 +1,7 @@
 {
   "name": "proto-frames",
   "version": "0.1.0",
-  "description": "Generate fast, low-fidelity HTML wireframes to preview the UI/UX implications of a feature or change — for any AI agent harness.",
+  "description": "Turn a feature description into interactive mid-fidelity wireframes and prototypes, installable in any AI agent harness.",
   "type": "module",
   "bin": {
     "proto-frames": "bin/cli.js",
