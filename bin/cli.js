@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_SRC = path.join(__dirname, "..", "SKILL.md");
 const SKILL_CONTENT = fs.readFileSync(SKILL_SRC, "utf8");
 const ASSETS_SRC = path.join(__dirname, "..", "assets");
-const PKG_NAME = "wireframe-preview";
+const PKG_NAME = "proto-frame";
 const PKG_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8")).version;
 
 const genericAgentSkill = {
@@ -143,7 +143,7 @@ function writePlatform(name, platform) {
   }
 
   if (platform.type === "append") {
-    const marker = `<!-- wireframe-preview -->`;
+    const marker = `<!-- proto-frame -->`;
     let existing = "";
     if (fs.existsSync(dest)) {
       existing = fs.readFileSync(dest, "utf8");
@@ -191,7 +191,7 @@ function removePlatform(name, platform) {
       console.log(`  ${platform.label}: not installed`);
       return;
     }
-    const marker = `<!-- wireframe-preview -->`;
+    const marker = `<!-- proto-frame -->`;
     const content = fs.readFileSync(dest, "utf8");
     if (!content.includes(marker)) {
       console.log(`  ${platform.label}: not installed`);
@@ -238,8 +238,8 @@ function autoDetect() {
 // command is identical everywhere (no global install); only the file + format
 // differ. Strategy: auto-merge JSON where safe, print a snippet otherwise.
 
-const MCP_NAME = PKG_NAME; // "wireframe-preview"
-const MCP_SERVER = { command: "npx", args: ["-y", "wireframe-preview", "serve"] };
+const MCP_NAME = PKG_NAME; // "proto-frame"
+const MCP_SERVER = { command: "npx", args: ["-y", "proto-frame", "serve"] };
 
 const MCP_TARGETS = {
   "claude-project": {
@@ -419,18 +419,18 @@ if (cmd === "serve" || cmd === "mcp-server") {
 
 if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
   console.log(`
-wireframe-preview — install a low-fidelity wireframe skill into your AI agent
+proto-frame — install a low-fidelity wireframe skill into your AI agent
 
 Usage:
-  npx wireframe-preview install                auto-detect agents in this project
-  npx wireframe-preview install <platform>     install the skill for one platform
-  npx wireframe-preview uninstall [platform]   remove the skill (omit to auto-detect)
-  npx wireframe-preview list                   show supported platforms
+  npx proto-frame install                auto-detect agents in this project
+  npx proto-frame install <platform>     install the skill for one platform
+  npx proto-frame uninstall [platform]   remove the skill (omit to auto-detect)
+  npx proto-frame list                   show supported platforms
 
-  npx wireframe-preview mcp <platform>         register the optional MCP server
-  npx wireframe-preview mcp                     print MCP config for every harness
-  npx wireframe-preview mcp --print <platform>  print (never edit) the MCP config
-  npx wireframe-preview mcp --remove <platform> unregister the MCP server
+  npx proto-frame mcp <platform>         register the optional MCP server
+  npx proto-frame mcp                     print MCP config for every harness
+  npx proto-frame mcp --print <platform>  print (never edit) the MCP config
+  npx proto-frame mcp --remove <platform> unregister the MCP server
 
 The MCP server adds the live, no-paste feedback loop + the /editor direct-edit UI.
 It is optional and only works on a local harness. The skill works without it.
@@ -455,7 +455,7 @@ if (cmd === "install") {
   if (platformFlag) {
     if (!PLATFORMS[platformFlag]) {
       console.error(`Unknown platform: ${platformFlag}`);
-      console.error(`Run: npx wireframe-preview list`);
+      console.error(`Run: npx proto-frame list`);
       process.exit(1);
     }
     targets = [platformFlag];
@@ -511,7 +511,7 @@ if (cmd === "mcp") {
   // No platform → safest default: print the config for every harness, edit nothing.
   if (!platformFlag) {
     console.log(
-      "MCP launch command (same everywhere): npx -y wireframe-preview serve\n" +
+      "MCP launch command (same everywhere): npx -y proto-frame serve\n" +
       "Pass a platform to auto-merge JSON configs, e.g. `mcp cursor`.\n",
     );
     for (const [name, t] of Object.entries(MCP_TARGETS)) printMcpSnippet(name, t);
@@ -531,5 +531,5 @@ if (cmd === "mcp") {
 }
 
 console.error(`Unknown command: ${cmd}`);
-console.error(`Run: npx wireframe-preview help`);
+console.error(`Run: npx proto-frame help`);
 process.exit(1);

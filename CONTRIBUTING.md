@@ -1,12 +1,12 @@
-# Contributing to wireframe-preview
+# Contributing to proto-frame
 
 Thanks for your interest in contributing. This is a focused tool — keep PRs tightly scoped.
 
 ## Quick start
 
 ```bash
-git clone https://github.com/your-org/wireframe-preview
-cd wireframe-preview
+git clone https://github.com/your-org/proto-frame
+cd proto-frame
 npm install
 ```
 
@@ -122,7 +122,7 @@ server is split into four modules:
 
 ```bash
 # Register with your harness (Claude Code, Cursor, VS Code, etc.)
-npx wireframe-preview mcp claude        # or: cursor, vscode, windsurf, etc.
+npx proto-frame mcp claude        # or: cursor, vscode, windsurf, etc.
 
 # The harness launches the server automatically when agent calls wireframe_* tools.
 # Entry point: node mcp/server.js (over stdio)
@@ -133,9 +133,9 @@ This writes to `~/.claude/claude_desktop_config.json` (or equivalent) something 
 ```json
 {
   "mcpServers": {
-    "wireframe-preview": {
+    "proto-frame": {
       "command": "node",
-      "args": ["/absolute/path/to/wireframe-preview/mcp/server.js"]
+      "args": ["/absolute/path/to/proto-frame/mcp/server.js"]
     }
   }
 }

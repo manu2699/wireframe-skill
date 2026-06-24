@@ -1,5 +1,5 @@
 /**
- * MCP tool definitions and handlers for wireframe-preview.
+ * MCP tool definitions and handlers for proto-frame.
  */
 
 import * as store from "./store.js";

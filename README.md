@@ -1,4 +1,4 @@
-# wireframe-preview
+# proto-frame
 
 > Generate fast, monochrome mid-fidelity wireframes from inside your AI agent.
 
@@ -11,28 +11,28 @@ Pairs with [feature-spec](https://npmjs.com/package/feature-spec): that skill pr
 ## Install
 
 ```bash
-npx wireframe-preview install          # auto-detect agents in your project
+npx proto-frame install          # auto-detect agents in your project
 ```
 
 Or target a specific agent:
 
 ```bash
-npx wireframe-preview install claude          # Claude Code — global (~/.claude/skills/)
-npx wireframe-preview install claude-project  # Claude Code — project (.claude/skills/)
-npx wireframe-preview install cursor          # Cursor (.cursor/rules/)
-npx wireframe-preview install windsurf        # Windsurf (.windsurf/rules/)
-npx wireframe-preview install kilocode        # Kilocode (.kilocode/rules/)
-npx wireframe-preview install copilot         # GitHub Copilot (.github/copilot-instructions.md)
-npx wireframe-preview install amp-code        # Amp Code (~/.config/amp/settings.json)
-npx wireframe-preview install codex           # Codex (~/.codex/AGENTS.md)
-npx wireframe-preview install antigravity     # Antigravity (.agents/plugins/)
-npx wireframe-preview install agents          # Generic (.agents/skills/)
+npx proto-frame install claude          # Claude Code — global (~/.claude/skills/)
+npx proto-frame install claude-project  # Claude Code — project (.claude/skills/)
+npx proto-frame install cursor          # Cursor (.cursor/rules/)
+npx proto-frame install windsurf        # Windsurf (.windsurf/rules/)
+npx proto-frame install kilocode        # Kilocode (.kilocode/rules/)
+npx proto-frame install copilot         # GitHub Copilot (.github/copilot-instructions.md)
+npx proto-frame install amp-code        # Amp Code (~/.config/amp/settings.json)
+npx proto-frame install codex           # Codex (~/.codex/AGENTS.md)
+npx proto-frame install antigravity     # Antigravity (.agents/plugins/)
+npx proto-frame install agents          # Generic (.agents/skills/)
 ```
 
 ```bash
-npx wireframe-preview uninstall            # auto-detect and remove
-npx wireframe-preview uninstall cursor     # remove from one platform
-npx wireframe-preview list                 # list all supported platforms
+npx proto-frame uninstall            # auto-detect and remove
+npx proto-frame uninstall cursor     # remove from one platform
+npx proto-frame list                 # list all supported platforms
 ```
 
 > `pnpm dlx` and `bunx` work everywhere `npx` does.
@@ -46,19 +46,19 @@ The skill works without MCP using clipboard copy-paste. With MCP, the browser st
 Register the server in your harness after installing the skill:
 
 ```bash
-npx wireframe-preview mcp claude-project  # Claude Code → .mcp.json
-npx wireframe-preview mcp cursor          # Cursor → .cursor/mcp.json
-npx wireframe-preview mcp windsurf        # Windsurf → ~/.codeium/windsurf/mcp_config.json
-npx wireframe-preview mcp copilot         # GitHub Copilot (VS Code) → .vscode/mcp.json
-npx wireframe-preview mcp kilocode        # Kilocode → .kilocode/mcp.json
-npx wireframe-preview mcp amp-code        # Amp Code → ~/.config/amp/settings.json
-npx wireframe-preview mcp antigravity     # Antigravity → ~/.gemini/config/mcp_config.json
+npx proto-frame mcp claude-project  # Claude Code → .mcp.json
+npx proto-frame mcp cursor          # Cursor → .cursor/mcp.json
+npx proto-frame mcp windsurf        # Windsurf → ~/.codeium/windsurf/mcp_config.json
+npx proto-frame mcp copilot         # GitHub Copilot (VS Code) → .vscode/mcp.json
+npx proto-frame mcp kilocode        # Kilocode → .kilocode/mcp.json
+npx proto-frame mcp amp-code        # Amp Code → ~/.config/amp/settings.json
+npx proto-frame mcp antigravity     # Antigravity → ~/.gemini/config/mcp_config.json
 ```
 
 ```bash
-npx wireframe-preview mcp                 # print config snippet for every harness
-npx wireframe-preview mcp --print cursor  # print only, never edit
-npx wireframe-preview mcp --remove cursor # unregister
+npx proto-frame mcp                 # print config snippet for every harness
+npx proto-frame mcp --print cursor  # print only, never edit
+npx proto-frame mcp --remove cursor # unregister
 ```
 
 For harnesses with non-JSON configs (Codex TOML, Cline VS Code storage), the command prints the snippet for manual setup instead of editing.
@@ -82,7 +82,7 @@ For harnesses with non-JSON configs (Codex TOML, Cline VS Code storage), the com
 Once the skill is installed, invoke it inside your agent:
 
 ```
-/wireframe-preview
+/proto-frame
 ```
 
 Point it at whatever you have:
@@ -118,14 +118,14 @@ Strictly monochrome — layout, IA, and flow only. No colors, real copy, or prod
 
 ```bash
 npx feature-spec install        # install the spec skill
-npx wireframe-preview install   # install this skill
+npx proto-frame install   # install this skill
 ```
 
 Then in your agent:
 
 ```
 /feature-spec       → writes docs/specs/refund-flow.md
-/wireframe-preview  → reads it, proposes screens, opens wireframe
+/proto-frame  → reads it, proposes screens, opens wireframe
 ```
 
 ---
